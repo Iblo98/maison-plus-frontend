@@ -143,7 +143,7 @@ export default function Accueil() {
             {annonces.map((annonce) => (
               <Link key={annonce.id} href={`/annonces/${annonce.id}`}>
                 <div className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all duration-300 cursor-pointer group">
-                  
+
                   {/* Image */}
                   <div className="h-52 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
                     {annonce.photo_principale ? (
@@ -178,13 +178,6 @@ export default function Accueil() {
                       <Heart size={16} className="text-gray-400 hover:text-red-500" />
                     </button>
 
-                    {/* Badge Pro */}
-                    {annonce.type_compte === 'professionnel' && (
-                      <span className="absolute bottom-3 left-3 bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded-full">
-                        Pro
-                      </span>
-                    )}
-
                     {/* Sponsorise */}
                     {annonce.est_sponsorisee && (
                       <span className="absolute bottom-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
@@ -200,12 +193,12 @@ export default function Accueil() {
                     </h3>
                     <div className="flex items-center gap-1 text-gray-400 text-sm mb-2">
                       <MapPin size={13} />
-                      <span>{annonce.ville}</span>
+                      <span>{annonce.quartier ? `${annonce.quartier}, ` : ''}{annonce.ville}</span>
                     </div>
                     {annonce.superficie && (
                       <div className="flex items-center gap-1 text-gray-400 text-sm mb-3">
                         <Square size={13} />
-                        <span>{annonce.superficie} m²</span>
+                        <span>{parseFloat(annonce.superficie).toFixed(0)} m²</span>
                       </div>
                     )}
                     <div className="flex items-center justify-between">
