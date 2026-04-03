@@ -18,8 +18,11 @@ export default function Connexion() {
     e.preventDefault();
     setChargement(true);
     try {
-      await connexion(email, motDePasse);
+      const utilisateur = await connexion(email, motDePasse);
       toast.success('Connexion réussie !');
+      if (!utilisateur.email_verifie) {
+        toast('Pensez à vérifier votre email !', { icon: '📧' });
+      }
       router.push('/');
     } catch (erreur) {
       toast.error(erreur?.response?.data?.message || 'Email ou mot de passe incorrect');
@@ -32,7 +35,6 @@ export default function Connexion() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
       <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md">
 
-        {/* Logo */}
         <Link href="/" className="flex items-center justify-center gap-2 mb-8">
           <Home className="text-blue-600" size={28} />
           <span className="text-2xl font-bold text-blue-600">Maison</span>
@@ -48,9 +50,7 @@ export default function Connexion() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <input
               type="email"
               value={email}
@@ -62,9 +62,15 @@ export default function Connexion() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mot de passe
-            </label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-gray-700">
+                Mot de passe
+              </label>
+              <Link href="/mot-de-passe-oublie"
+                className="text-sm text-blue-600 hover:underline">
+                Mot de passe oublié ?
+              </Link>
+            </div>
             <div className="relative">
               <input
                 type={voirMDP ? 'text' : 'password'}
@@ -74,9 +80,7 @@ export default function Connexion() {
                 required
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition pr-12"
               />
-              <button
-                type="button"
-                onClick={() => setVoirMDP(!voirMDP)}
+              <button type="button" onClick={() => setVoirMDP(!voirMDP)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                 {voirMDP ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
@@ -86,7 +90,7 @@ export default function Connexion() {
           <button
             type="submit"
             disabled={chargement}
-            className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+            className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50">
             {chargement ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
