@@ -38,6 +38,30 @@ export default function Publier() {
       router.push('/connexion');
       return;
     }
+
+    // Vérifier KYC
+    try {
+      const kycResponse = await api.get('/kyc/statut');
+      const kyc = kycResponse.data;
+      if (!kyc.etapes.photo_profil) {
+        toast.error('Ajoutez une photo de profil avant de publier');
+        router.push('/kyc');
+        return;
+      }
+      if (!kyc.etapes.cnib_soumise) {
+        toast.error('Soumettez votre CNIB ou passeport avant de publier');
+        router.push('/kyc');
+        return;
+      }
+      if (!kyc.etapes.paiement_configure) {
+        toast.error('Configurez votre Mobile Money avant de publier');
+        router.push('/kyc');
+        return;
+      }
+    } catch (err) {
+      console.error('Erreur vérification KYC:', err);
+    }
+
     setChargement(true);
     try {
       await api.post('/annonces', form);
@@ -80,7 +104,7 @@ export default function Publier() {
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
 
-          {/* Etape 1 — Informations de base */}
+          {/* Etape 1 */}
           {etape === 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Informations de base</h2>
@@ -144,15 +168,13 @@ export default function Publier() {
             </div>
           )}
 
-          {/* Etape 2 — Caractéristiques */}
+          {/* Etape 2 */}
           {etape === 2 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Caractéristiques</h2>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Prix (XOF)
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Prix (XOF)</label>
                 <input type="number" name="prix" value={form.prix} onChange={handleChange}
                   placeholder="150000"
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -205,7 +227,7 @@ export default function Publier() {
             </div>
           )}
 
-          {/* Etape 3 — Localisation */}
+          {/* Etape 3 */}
           {etape === 3 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Localisation</h2>
@@ -234,7 +256,6 @@ export default function Publier() {
                 />
               </div>
 
-              {/* Résumé */}
               <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                 <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
                   <Home size={16} />

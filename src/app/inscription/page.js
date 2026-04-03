@@ -30,7 +30,7 @@ export default function Inscription() {
     try {
       await inscription(form);
       toast.success('Compte créé avec succès !');
-      router.push('/');
+      router.push('/kyc');
     } catch (erreur) {
       toast.error(erreur?.response?.data?.message || 'Erreur lors de l\'inscription');
     } finally {
