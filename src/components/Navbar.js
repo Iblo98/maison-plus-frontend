@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { Home, Plus, MessageCircle, User, LogOut, Menu, X } from 'lucide-react';
 import { useState } from 'react';
-
+import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings } from 'lucide-react';
 export default function Navbar() {
   const { utilisateur, deconnexion } = useAuth();
   const [menuOuvert, setMenuOuvert] = useState(false);
@@ -52,6 +52,10 @@ export default function Navbar() {
                 <Link href="/dashboard"
                   className="text-gray-600 hover:text-blue-600 transition">
                   <User size={24} />
+                </Link>
+                <Link href="/parametres"
+                  className="text-gray-600 hover:text-blue-600 transition">
+                  <Settings size={24} />
                 </Link>
                 <button onClick={deconnexion}
                   className="text-gray-600 hover:text-red-500 transition">
