@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { Home, Plus, MessageCircle, User, LogOut, Menu, X } from 'lucide-react';
+
 import { useState } from 'react';
 import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings } from 'lucide-react';
 export default function Navbar() {
