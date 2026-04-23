@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
+import Notifications from './Notifications';
 
 export default function Navbar() {
   const { utilisateur, deconnexion } = useAuth();
@@ -78,6 +79,8 @@ export default function Navbar() {
                   )}
                 </Link>
 
+                <Notifications />
+                
                 <Link href="/dashboard" className="text-gray-600 hover:text-blue-600 transition">
                   <User size={24} />
                 </Link>
