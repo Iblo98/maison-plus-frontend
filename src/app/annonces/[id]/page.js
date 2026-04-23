@@ -169,24 +169,31 @@ export default function DetailAnnonce() {
             {/* Propriétaire */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Propriétaire</h2>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                  <span className="text-blue-600 font-bold text-lg">
-                    {annonce.prenom?.[0]}{annonce.nom?.[0]}
-                  </span>
+              <Link href={`/profil/${annonce.utilisateur_id}`}>
+                <div className="flex items-center gap-3 mb-4 hover:opacity-80 transition">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
+                    {annonce.photo_profil ? (
+                      <img src={annonce.photo_profil} alt="Profil"
+                        className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-blue-600 font-bold text-lg">
+                        {annonce.prenom?.[0]}{annonce.nom?.[0]}
+                      </span>
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-gray-800 hover:text-blue-600 transition">
+                      {annonce.prenom} {annonce.nom}
+                    </p>
+                    {annonce.est_verifie && (
+                      <div className="flex items-center gap-1 text-green-500 text-sm">
+                        <Shield size={12} />
+                        <span>Compte vérifié</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="font-semibold text-gray-800">
-                    {annonce.prenom} {annonce.nom}
-                  </p>
-                  {annonce.est_verifie && (
-                    <div className="flex items-center gap-1 text-green-500 text-sm">
-                      <Shield size={12} />
-                      <span>Compte vérifié</span>
-                    </div>
-                  )}
-                </div>
-              </div>
+              </Link>
 
               <div className="space-y-3">
                 <a href={`tel:${annonce.telephone}`}
