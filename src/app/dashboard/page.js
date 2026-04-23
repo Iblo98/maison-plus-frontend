@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../components/Navbar';
@@ -7,6 +7,8 @@ import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
 import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ImageCropper from '../../components/ImageCropper';
+import Lightbox from '../../components/Lightbox';
 
 export default function Dashboard() {
   const { utilisateur, chargement: authChargement } = useAuth();
@@ -16,6 +18,10 @@ export default function Dashboard() {
   const [chargement, setChargement] = useState(true);
   const [uploadingProfil, setUploadingProfil] = useState(false);
   const [uploadingCouverture, setUploadingCouverture] = useState(false);
+  const [cropImage, setCropImage] = useState(null);
+  const [cropType, setCropType] = useState(null);
+  const [lightboxImage, setLightboxImage] = useState(null);
+  const [lightboxTitre, setLightboxTitre] = useState('');
 
   useEffect(() => {
     if (!authChargement && !utilisateur) router.push('/connexion');
@@ -37,60 +43,52 @@ export default function Dashboard() {
     }
   };
 
-  const changerPhotoProfil = async (e) => {
+  const ouvrirCropProfil = (e) => {
     const fichier = e.target.files[0];
     if (!fichier) return;
-    setUploadingProfil(true);
+    const url = URL.createObjectURL(fichier);
+    setCropImage(url);
+    setCropType('profil');
+  };
+
+  const ouvrirCropCouverture = (e) => {
+    const fichier = e.target.files[0];
+    if (!fichier) return;
+    const url = URL.createObjectURL(fichier);
+    setCropImage(url);
+    setCropType('couverture');
+  };
+
+  const uploadApresCrop = async (blob) => {
+    const endpoint = cropType === 'profil' ? 'photo-profil' : 'photo-couverture';
+    const setter = cropType === 'profil' ? setUploadingProfil : setUploadingCouverture;
+    setCropImage(null);
+    setter(true);
     try {
       const formData = new FormData();
-      formData.append('photo', fichier);
-      const response = await fetch('http://localhost:3000/api/kyc/photo-profil', {
+      formData.append('photo', blob, 'photo.jpg');
+      const response = await fetch(`http://localhost:3000/api/kyc/${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData
       });
       const data = await response.json();
       if (data.succes) {
-        toast.success('Photo de profil mise à jour !');
+        toast.success(cropType === 'profil' ? 'Photo de profil mise à jour !' : 'Photo de couverture mise à jour !');
         chargerDonnees();
-        // Mettre à jour localStorage
-        const user = JSON.parse(localStorage.getItem('utilisateur') || '{}');
-        user.photo_profil = data.photo_url;
-        localStorage.setItem('utilisateur', JSON.stringify(user));
-        window.location.reload();
+        if (cropType === 'profil') {
+          const user = JSON.parse(localStorage.getItem('utilisateur') || '{}');
+          user.photo_profil = data.photo_url;
+          localStorage.setItem('utilisateur', JSON.stringify(user));
+          window.location.reload();
+        }
       } else {
         toast.error(data.message);
       }
     } catch (err) {
       toast.error('Erreur upload photo');
     } finally {
-      setUploadingProfil(false);
-    }
-  };
-
-  const changerPhotoCouverture = async (e) => {
-    const fichier = e.target.files[0];
-    if (!fichier) return;
-    setUploadingCouverture(true);
-    try {
-      const formData = new FormData();
-      formData.append('photo', fichier);
-      const response = await fetch('http://localhost:3000/api/kyc/photo-couverture', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: formData
-      });
-      const data = await response.json();
-      if (data.succes) {
-        toast.success('Photo de couverture mise à jour !');
-        chargerDonnees();
-      } else {
-        toast.error(data.message);
-      }
-    } catch (err) {
-      toast.error('Erreur upload couverture');
-    } finally {
-      setUploadingCouverture(false);
+      setter(false);
     }
   };
 
@@ -146,9 +144,10 @@ export default function Dashboard() {
           <div className="relative h-48 bg-gradient-to-br from-blue-400 to-blue-600">
             {photoCouverture && (
               <img src={photoCouverture} alt="Couverture"
-                className="w-full h-full object-cover" />
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => { setLightboxImage(photoCouverture); setLightboxTitre('Photo de couverture'); }}
+              />
             )}
-            {/* Bouton changer couverture */}
             <label className="absolute bottom-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 cursor-pointer hover:bg-opacity-70 transition">
               {uploadingCouverture ? (
                 <span>Upload...</span>
@@ -158,7 +157,7 @@ export default function Dashboard() {
                   <span>Changer la couverture</span>
                 </>
               )}
-              <input type="file" accept="image/*" onChange={changerPhotoCouverture}
+              <input type="file" accept="image/*" onChange={ouvrirCropCouverture}
                 className="hidden" disabled={uploadingCouverture} />
             </label>
           </div>
@@ -168,7 +167,8 @@ export default function Dashboard() {
             <div className="flex items-end justify-between -mt-12 mb-4">
               {/* Photo de profil */}
               <div className="relative">
-                <div className="w-24 h-24 rounded-full border-4 border-white bg-blue-100 overflow-hidden shadow-md">
+                <div className="w-24 h-24 rounded-full border-4 border-white bg-blue-100 overflow-hidden shadow-md cursor-pointer"
+                  onClick={() => { if (photoProfil) { setLightboxImage(photoProfil); setLightboxTitre('Photo de profil'); }}}>
                   {photoProfil ? (
                     <img src={photoProfil} alt="Profil"
                       className="w-full h-full object-cover" />
@@ -180,14 +180,13 @@ export default function Dashboard() {
                     </div>
                   )}
                 </div>
-                {/* Bouton changer photo profil */}
                 <label className="absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1.5 cursor-pointer hover:bg-gray-700 transition shadow">
                   {uploadingProfil ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
                   ) : (
                     <Camera size={14} />
                   )}
-                  <input type="file" accept="image/*" onChange={changerPhotoProfil}
+                  <input type="file" accept="image/*" onChange={ouvrirCropProfil}
                     className="hidden" disabled={uploadingProfil} />
                 </label>
               </div>
@@ -207,7 +206,6 @@ export default function Dashboard() {
               </div>
             </div>
 
-            {/* Nom et infos */}
             <div>
               <h1 className="text-xl font-bold text-gray-800">
                 {utilisateur?.prenom} {utilisateur?.nom}
@@ -306,6 +304,26 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* Cropper */}
+      {cropImage && (
+        <ImageCropper
+          image={cropImage}
+          aspect={cropType === 'profil' ? 1 : 3}
+          titre={cropType === 'profil' ? 'Recadrer la photo de profil' : 'Recadrer la photo de couverture'}
+          onCropComplete={uploadApresCrop}
+          onCancel={() => setCropImage(null)}
+        />
+      )}
+
+      {/* Lightbox */}
+      {lightboxImage && (
+        <Lightbox
+          image={lightboxImage}
+          titre={lightboxTitre}
+          onClose={() => setLightboxImage(null)}
+        />
+      )}
     </div>
   );
 }
