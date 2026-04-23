@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Home, Eye, Plus, Edit, Trash2, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Dashboard() {
@@ -14,14 +14,12 @@ export default function Dashboard() {
   const [profil, setProfil] = useState(null);
   const [annonces, setAnnonces] = useState([]);
   const [chargement, setChargement] = useState(true);
+  const [uploadingProfil, setUploadingProfil] = useState(false);
+  const [uploadingCouverture, setUploadingCouverture] = useState(false);
 
   useEffect(() => {
-    if (!authChargement && !utilisateur) {
-      router.push('/connexion');
-    }
-    if (utilisateur) {
-      chargerDonnees();
-    }
+    if (!authChargement && !utilisateur) router.push('/connexion');
+    if (utilisateur) chargerDonnees();
   }, [utilisateur, authChargement]);
 
   const chargerDonnees = async () => {
@@ -39,6 +37,63 @@ export default function Dashboard() {
     }
   };
 
+  const changerPhotoProfil = async (e) => {
+    const fichier = e.target.files[0];
+    if (!fichier) return;
+    setUploadingProfil(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', fichier);
+      const response = await fetch('http://localhost:3000/api/kyc/photo-profil', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (data.succes) {
+        toast.success('Photo de profil mise à jour !');
+        chargerDonnees();
+        // Mettre à jour localStorage
+        const user = JSON.parse(localStorage.getItem('utilisateur') || '{}');
+        user.photo_profil = data.photo_url;
+        localStorage.setItem('utilisateur', JSON.stringify(user));
+        window.location.reload();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Erreur upload photo');
+    } finally {
+      setUploadingProfil(false);
+    }
+  };
+
+  const changerPhotoCouverture = async (e) => {
+    const fichier = e.target.files[0];
+    if (!fichier) return;
+    setUploadingCouverture(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', fichier);
+      const response = await fetch('http://localhost:3000/api/kyc/photo-couverture', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (data.succes) {
+        toast.success('Photo de couverture mise à jour !');
+        chargerDonnees();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Erreur upload couverture');
+    } finally {
+      setUploadingCouverture(false);
+    }
+  };
+
   const supprimerAnnonce = async (id) => {
     if (!confirm('Supprimer cette annonce ?')) return;
     try {
@@ -50,9 +105,7 @@ export default function Dashboard() {
     }
   };
 
-  const formaterPrix = (prix) => {
-    return new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
-  };
+  const formaterPrix = (prix) => new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
 
   const getStatutBadge = (statut) => {
     const config = {
@@ -70,52 +123,106 @@ export default function Dashboard() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="max-w-5xl mx-auto px-4 py-8 animate-pulse">
-          <div className="h-32 bg-gray-200 rounded-2xl mb-6"/>
+          <div className="h-48 bg-gray-200 rounded-2xl mb-6"/>
           <div className="h-64 bg-gray-200 rounded-2xl"/>
         </div>
       </div>
     );
   }
 
+  const photoCouverture = profil?.profil?.photo_couverture;
+  const photoProfil = profil?.profil?.photo_profil_url || utilisateur?.photo_profil;
+
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto px-4 py-6">
 
-        {/* Profil */}
-        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
-          <div className="flex items-center justify-between flex-wrap gap-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
-                {utilisateur?.photo_profil ? (
-                  <img src={utilisateur.photo_profil} alt="Photo profil"
-                    className="w-full h-full object-cover" />
-                ) : (
-                  <span className="text-blue-600 font-bold text-2xl">
-                    {utilisateur?.prenom?.[0]}{utilisateur?.nom?.[0]}
-                  </span>
-                )}
+        {/* Carte profil style Facebook */}
+        <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
+
+          {/* Photo de couverture */}
+          <div className="relative h-48 bg-gradient-to-br from-blue-400 to-blue-600">
+            {photoCouverture && (
+              <img src={photoCouverture} alt="Couverture"
+                className="w-full h-full object-cover" />
+            )}
+            {/* Bouton changer couverture */}
+            <label className="absolute bottom-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 cursor-pointer hover:bg-opacity-70 transition">
+              {uploadingCouverture ? (
+                <span>Upload...</span>
+              ) : (
+                <>
+                  <Camera size={14} />
+                  <span>Changer la couverture</span>
+                </>
+              )}
+              <input type="file" accept="image/*" onChange={changerPhotoCouverture}
+                className="hidden" disabled={uploadingCouverture} />
+            </label>
+          </div>
+
+          {/* Info profil */}
+          <div className="px-6 pb-6">
+            <div className="flex items-end justify-between -mt-12 mb-4">
+              {/* Photo de profil */}
+              <div className="relative">
+                <div className="w-24 h-24 rounded-full border-4 border-white bg-blue-100 overflow-hidden shadow-md">
+                  {photoProfil ? (
+                    <img src={photoProfil} alt="Profil"
+                      className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-blue-600 font-bold text-3xl">
+                        {utilisateur?.prenom?.[0]}{utilisateur?.nom?.[0]}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                {/* Bouton changer photo profil */}
+                <label className="absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1.5 cursor-pointer hover:bg-gray-700 transition shadow">
+                  {uploadingProfil ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
+                  ) : (
+                    <Camera size={14} />
+                  )}
+                  <input type="file" accept="image/*" onChange={changerPhotoProfil}
+                    className="hidden" disabled={uploadingProfil} />
+                </label>
               </div>
-              <div>
-                <h1 className="text-xl font-bold text-gray-800">
-                  {utilisateur?.prenom} {utilisateur?.nom}
-                </h1>
-                <p className="text-gray-500">{utilisateur?.email}</p>
-                <span className={`text-xs px-2 py-1 rounded-full font-medium ${
-                  utilisateur?.statut === 'verifie'
-                    ? 'bg-green-50 text-green-600'
-                    : 'bg-yellow-50 text-yellow-600'
-                }`}>
-                  {utilisateur?.statut === 'verifie' ? 'Compte vérifié' : 'En attente de vérification'}
-                </span>
+
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-14">
+                <Link href="/parametres"
+                  className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                  <Settings size={16} />
+                  Paramètres
+                </Link>
+                <Link href="/publier"
+                  className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+                  <Plus size={16} />
+                  Nouvelle annonce
+                </Link>
               </div>
             </div>
-            <Link href="/publier"
-              className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
-              <Plus size={18} />
-              Nouvelle annonce
-            </Link>
+
+            {/* Nom et infos */}
+            <div>
+              <h1 className="text-xl font-bold text-gray-800">
+                {utilisateur?.prenom} {utilisateur?.nom}
+              </h1>
+              <p className="text-gray-500 text-sm">{utilisateur?.email}</p>
+              <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                utilisateur?.statut === 'actif' || utilisateur?.statut === 'verifie'
+                  ? 'bg-green-50 text-green-600'
+                  : 'bg-yellow-50 text-yellow-600'
+              }`}>
+                {utilisateur?.statut === 'actif' ? 'Compte actif'
+                  : utilisateur?.statut === 'verifie' ? 'Compte vérifié'
+                  : 'En attente de vérification'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -156,10 +263,16 @@ export default function Dashboard() {
                 return (
                   <div key={annonce.id}
                     className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-blue-200 transition gap-4">
-                    
                     <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className="w-14 h-14 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                        <Home size={24} className="text-blue-400" />
+                      <div className="w-14 h-14 bg-blue-50 rounded-xl overflow-hidden flex-shrink-0">
+                        {annonce.photo_principale ? (
+                          <img src={annonce.photo_principale} alt={annonce.titre}
+                            className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Home size={24} className="text-blue-400" />
+                          </div>
+                        )}
                       </div>
                       <div className="min-w-0">
                         <h3 className="font-semibold text-gray-800 truncate">{annonce.titre}</h3>
@@ -176,7 +289,6 @@ export default function Dashboard() {
                         </div>
                       </div>
                     </div>
-
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <Link href={`/annonces/${annonce.id}`}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
