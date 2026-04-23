@@ -19,6 +19,7 @@ export default function Parametres() {
     nom: '', prenom: '', telephone: '', langue: 'fr'
   });
   const [photoProfil, setPhotoProfil] = useState(null);
+  const [photoCouverture, setPhotoCouverture] = useState(null);
   const [formPaiement, setFormPaiement] = useState({
     mobile_money_numero: '',
     mobile_money_operateur: 'Orange Money'
@@ -96,6 +97,30 @@ export default function Parametres() {
       }
     } catch (err) {
       toast.error('Erreur upload photo');
+    } finally {
+      setChargement(false);
+    }
+  };
+  const uploadPhotoCouverture = async () => {
+    if (!photoCouverture) return;
+    setChargement(true);
+    try {
+      const formData = new FormData();
+      formData.append('photo', photoCouverture);
+      const response = await fetch('http://localhost:3000/api/kyc/photo-couverture', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+        body: formData
+      });
+      const data = await response.json();
+      if (data.succes) {
+        toast.success('Photo de couverture mise à jour !');
+        setPhotoCouverture(null);
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error('Erreur upload couverture');
     } finally {
       setChargement(false);
     }
@@ -218,43 +243,72 @@ export default function Parametres() {
             </div>
           )}
 
-          {/* Onglet Photo */}
           {onglet === 'photo' && (
-            <div className="space-y-4">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Photo de profil</h2>
+            <div className="space-y-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Photos du profil</h2>
 
-              {kyc?.etapes?.photo_profil && (
-                <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-green-700 text-sm">
-                  ✅ Photo de profil déjà configurée
-                </div>
-              )}
-
-              <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition cursor-pointer">
-                {photoProfil ? (
-                  <div>
-                    <img src={URL.createObjectURL(photoProfil)} alt="Aperçu"
-                      className="w-24 h-24 rounded-full object-cover mx-auto mb-3" />
-                    <p className="text-green-600 font-medium">{photoProfil.name}</p>
+              {/* Photo de profil */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-gray-700">Photo de profil <span className="text-red-500">*</span></h3>
+                {kyc?.etapes?.photo_profil && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3 text-green-700 text-sm">
+                    ✅ Photo de profil déjà configurée
                   </div>
-                ) : (
+                )}
+                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition cursor-pointer">
+                  {photoProfil ? (
+                    <div>
+                      <img src={URL.createObjectURL(photoProfil)} alt="Aperçu"
+                        className="w-20 h-20 rounded-full object-cover mx-auto mb-2" />
+                      <p className="text-green-600 font-medium text-sm">{photoProfil.name}</p>
+                    </div>
+                  ) : (
+                    <div>
+                      <Camera size={40} className="text-gray-300 mx-auto mb-2" />
+                      <p className="text-gray-500 text-sm">Cliquez pour changer votre photo de profil</p>
+                      <p className="text-gray-400 text-xs mt-1">JPG, PNG — Max 10MB</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*"
+                    onChange={(e) => setPhotoProfil(e.target.files[0])}
+                    className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                  />
+                </div>
+                <button onClick={uploadPhotoProfil} disabled={chargement || !photoProfil}
+                  className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50">
+                  {chargement ? 'Upload...' : 'Mettre à jour la photo de profil'}
+                </button>
+              </div>
+
+              {/* Photo de couverture */}
+              <div className="space-y-3">
+                <h3 className="font-medium text-gray-700">Photo de couverture <span className="text-gray-400 font-normal text-sm">(optionnelle)</span></h3>
+                <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition cursor-pointer overflow-hidden">
+                  {photoCouverture ? (
+                    <div>
+                      <img src={URL.createObjectURL(photoCouverture)} alt="Couverture"
+                        className="w-full h-32 object-cover rounded-xl mb-2" />
+                      <p className="text-green-600 font-medium text-sm">{photoCouverture.name}</p>
+                   </div>
+                 ) : (
                   <div>
-                    <Camera size={48} className="text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">Cliquez pour sélectionner une photo</p>
-                    <p className="text-gray-400 text-sm mt-1">JPG, PNG ou HEIC — Max 10MB</p>
+                    <Camera size={40} className="text-gray-300 mx-auto mb-2" />
+                    <p className="text-gray-500 text-sm">Cliquez pour ajouter une photo de couverture</p>
+                    <p className="text-gray-400 text-xs mt-1">JPG, PNG — Max 10MB — Format paysage recommandé</p>
                   </div>
                 )}
                 <input type="file" accept="image/*"
-                  onChange={(e) => setPhotoProfil(e.target.files[0])}
+                  onChange={(e) => setPhotoCouverture(e.target.files[0])}
                   className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                 />
               </div>
-
-              <button onClick={uploadPhotoProfil} disabled={chargement || !photoProfil}
+              <button onClick={uploadPhotoCouverture} disabled={chargement || !photoCouverture}
                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50">
-                {chargement ? 'Upload...' : 'Mettre à jour la photo'}
+                {chargement ? 'Upload...' : 'Mettre à jour la photo de couverture'}
               </button>
             </div>
-          )}
+          </div>
+        )}
 
           {/* Onglet Paiement */}
           {onglet === 'paiement' && (

@@ -87,10 +87,15 @@ export default function Dashboard() {
         <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
-                <span className="text-blue-600 font-bold text-2xl">
-                  {utilisateur?.prenom?.[0]}{utilisateur?.nom?.[0]}
-                </span>
+              <div className="w-16 h-16 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
+                {utilisateur?.photo_profil ? (
+                  <img src={utilisateur.photo_profil} alt="Photo profil"
+                    className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-blue-600 font-bold text-2xl">
+                    {utilisateur?.prenom?.[0]}{utilisateur?.nom?.[0]}
+                  </span>
+                )}
               </div>
               <div>
                 <h1 className="text-xl font-bold text-gray-800">
