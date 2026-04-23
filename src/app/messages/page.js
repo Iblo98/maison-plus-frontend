@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
-import { Send, ArrowLeft, Home, Search } from 'lucide-react';
+import { Send, ArrowLeft, Home, Search, Check, CheckCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
 
@@ -19,6 +19,7 @@ export default function Messages() {
   const [nouveauMessage, setNouveauMessage] = useState('');
   const [chargement, setChargement] = useState(true);
   const [envoi, setEnvoi] = useState(false);
+  const [autreUtilisateur, setAutreUtilisateur] = useState(null);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -29,8 +30,6 @@ export default function Messages() {
     if (utilisateur) {
       initialiserSocket();
       chargerConversations();
-
-      // Si on vient d'une annonce
       const annonceId = searchParams.get('annonce');
       const destinataireId = searchParams.get('destinataire');
       if (annonceId && destinataireId) {
@@ -56,9 +55,16 @@ export default function Messages() {
         if (prev.find(m => m.id === message.id)) return prev;
         return [...prev, message];
       });
+      // Marquer comme lu automatiquement si conversation ouverte
+      chargerConversations();
     });
     nouveauSocket.on('notification_message', () => {
       chargerConversations();
+    });
+    nouveauSocket.on('message_lu', (data) => {
+      setMessages(prev => prev.map(m =>
+        m.id === data.messageId ? { ...m, est_lu: true } : m
+      ));
     });
     setSocket(nouveauSocket);
   };
@@ -68,7 +74,7 @@ export default function Messages() {
       const response = await api.get('/messages/mes-conversations');
       setConversations(response.data.conversations || []);
     } catch (erreur) {
-      console.error('Erreur chargement conversations:', erreur);
+      console.error('Erreur:', erreur);
     } finally {
       setChargement(false);
     }
@@ -84,10 +90,11 @@ export default function Messages() {
         autre_utilisateur_id: destinataireId,
         autre_utilisateur_nom: annonce.nom,
         autre_utilisateur_prenom: annonce.prenom,
+        autre_utilisateur_photo: annonce.photo_profil
       };
       ouvrirConversation(conv);
     } catch (err) {
-      console.error('Erreur ouverture conversation:', err);
+      console.error('Erreur:', err);
     }
   };
 
@@ -95,6 +102,9 @@ export default function Messages() {
     setConversationActive(conv);
     const autreId = conv.autre_utilisateur_id ||
       (conv.expediteur_id === utilisateur.id ? conv.destinataire_id : conv.expediteur_id);
+
+    const autre = getAutreUtilisateur(conv);
+    setAutreUtilisateur(autre);
 
     if (socket) {
       socket.emit('rejoindre_conversation', {
@@ -107,8 +117,10 @@ export default function Messages() {
     try {
       const response = await api.get(`/messages/${conv.annonce_id}/${autreId}`);
       setMessages(response.data.messages || []);
+      // Mettre à jour les conversations pour effacer le badge non lu
+      chargerConversations();
     } catch (erreur) {
-      console.error('Erreur chargement messages:', erreur);
+      console.error('Erreur:', erreur);
     }
   };
 
@@ -131,12 +143,12 @@ export default function Messages() {
 
       const msg = response.data.data;
 
-      // Émettre via socket
       if (socket) {
         socket.emit('nouveau_message', {
           ...msg,
-          expediteur_nom: utilisateur.prenom,
-          expediteur_prenom: utilisateur.prenom
+          expediteur_nom: utilisateur.nom,
+          expediteur_prenom: utilisateur.prenom,
+          expediteur_photo: utilisateur.photo_profil
         });
       }
 
@@ -156,15 +168,13 @@ export default function Messages() {
 
   const formaterHeure = (date) => {
     return new Date(date).toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
+      hour: '2-digit', minute: '2-digit'
     });
   };
 
   const formaterDate = (date) => {
     const d = new Date(date);
-    const today = new Date();
-    const diff = today - d;
+    const diff = new Date() - d;
     if (diff < 86400000) return 'Aujourd\'hui';
     if (diff < 172800000) return 'Hier';
     return d.toLocaleDateString('fr-FR');
@@ -184,7 +194,7 @@ export default function Messages() {
         id: conv.destinataire_id,
         nom: conv.destinataire_nom,
         prenom: conv.destinataire_prenom,
-        photo: null
+        photo: conv.destinataire_photo
       };
     }
     return {
@@ -193,6 +203,26 @@ export default function Messages() {
       prenom: conv.expediteur_prenom,
       photo: conv.expediteur_photo
     };
+  };
+
+  const Avatar = ({ nom, prenom, photo, taille = 'md' }) => {
+    const classes = taille === 'sm'
+      ? 'w-8 h-8 text-xs'
+      : taille === 'lg'
+      ? 'w-12 h-12 text-base'
+      : 'w-10 h-10 text-sm';
+
+    return (
+      <div className={`${classes} rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden`}>
+        {photo ? (
+          <img src={photo} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <span className="text-blue-600 font-bold">
+            {prenom?.[0]}{nom?.[0]}
+          </span>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -205,8 +235,6 @@ export default function Messages() {
 
             {/* Liste conversations */}
             <div className={`w-full md:w-80 border-r border-gray-100 flex flex-col ${conversationActive ? 'hidden md:flex' : 'flex'}`}>
-
-              {/* Header */}
               <div className="p-4 border-b border-gray-100">
                 <h2 className="text-lg font-bold text-gray-800 mb-3">Messages</h2>
                 <div className="relative">
@@ -217,7 +245,6 @@ export default function Messages() {
                 </div>
               </div>
 
-              {/* Liste */}
               <div className="flex-1 overflow-y-auto">
                 {chargement ? (
                   <div className="p-4 space-y-3">
@@ -237,48 +264,37 @@ export default function Messages() {
                       <Home size={32} className="text-blue-300" />
                     </div>
                     <p className="text-gray-500 text-sm">Aucune conversation</p>
-                    <p className="text-gray-400 text-xs mt-1">
-                      Contactez un propriétaire depuis une annonce
-                    </p>
+                    <p className="text-gray-400 text-xs mt-1">Contactez un propriétaire depuis une annonce</p>
                   </div>
                 ) : (
                   conversations.map((conv, index) => {
                     const autre = getAutreUtilisateur(conv);
                     const estActive = conversationActive?.annonce_id === conv.annonce_id;
+                    const nonLus = parseInt(conv.non_lus) || 0;
                     return (
                       <button key={index} onClick={() => ouvrirConversation(conv)}
-                        className={`w-full p-4 flex gap-3 hover:bg-gray-50 transition text-left border-b border-gray-50 ${
-                          estActive ? 'bg-blue-50' : ''
-                        }`}>
-                        <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
-                          {autre.photo ? (
-                            <img src={autre.photo} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            <span className="text-blue-600 font-bold">
-                              {autre.prenom?.[0]}{autre.nom?.[0]}
-                            </span>
-                          )}
-                        </div>
+                        className={`w-full p-4 flex gap-3 hover:bg-gray-50 transition text-left border-b border-gray-50 ${estActive ? 'bg-blue-50' : ''}`}>
+                        <Avatar nom={autre.nom} prenom={autre.prenom} photo={autre.photo} taille="lg" />
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start">
-                            <p className="font-semibold text-gray-800 text-sm truncate">
+                            <p className={`text-sm truncate ${nonLus > 0 ? 'font-bold text-gray-900' : 'font-semibold text-gray-800'}`}>
                               {autre.prenom} {autre.nom}
                             </p>
                             <span className="text-gray-400 text-xs flex-shrink-0 ml-2">
                               {formaterDate(conv.created_at)}
                             </span>
                           </div>
-                          <p className="text-gray-500 text-xs truncate mt-0.5">
-                            {conv.annonce_titre}
-                          </p>
-                          <p className="text-gray-400 text-xs truncate mt-0.5">
-                            {conv.contenu}
-                          </p>
-                          {conv.non_lus > 0 && (
-                            <span className="inline-block bg-blue-600 text-white text-xs rounded-full px-1.5 py-0.5 mt-1">
-                              {conv.non_lus}
-                            </span>
-                          )}
+                          <p className="text-gray-500 text-xs truncate mt-0.5">{conv.annonce_titre}</p>
+                          <div className="flex items-center justify-between mt-0.5">
+                            <p className={`text-xs truncate ${nonLus > 0 ? 'font-semibold text-gray-700' : 'text-gray-400'}`}>
+                              {conv.contenu}
+                            </p>
+                            {nonLus > 0 && (
+                              <span className="flex-shrink-0 ml-2 bg-blue-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+                                {nonLus}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </button>
                     );
@@ -289,7 +305,6 @@ export default function Messages() {
 
             {/* Zone de chat */}
             <div className={`flex-1 flex flex-col ${!conversationActive ? 'hidden md:flex' : 'flex'}`}>
-
               {!conversationActive ? (
                 <div className="flex-1 flex items-center justify-center">
                   <div className="text-center">
@@ -297,33 +312,26 @@ export default function Messages() {
                       <Home size={40} className="text-blue-300" />
                     </div>
                     <p className="text-gray-500">Sélectionnez une conversation</p>
-                    <p className="text-gray-400 text-sm mt-1">
-                      ou contactez un propriétaire depuis une annonce
-                    </p>
+                    <p className="text-gray-400 text-sm mt-1">ou contactez un propriétaire depuis une annonce</p>
                   </div>
                 </div>
               ) : (
                 <>
                   {/* Header conversation */}
-                  <div className="p-4 border-b border-gray-100 flex items-center gap-3">
+                  <div className="p-4 border-b border-gray-100 flex items-center gap-3 bg-white">
                     <button onClick={() => setConversationActive(null)}
                       className="md:hidden text-gray-600 hover:text-gray-800">
                       <ArrowLeft size={20} />
                     </button>
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center overflow-hidden">
-                      {conversationActive.autre_utilisateur_photo ? (
-                        <img src={conversationActive.autre_utilisateur_photo} alt=""
-                          className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-blue-600 font-bold text-sm">
-                          {conversationActive.autre_utilisateur_prenom?.[0]}
-                          {conversationActive.autre_utilisateur_nom?.[0]}
-                        </span>
-                      )}
-                    </div>
+                    <Avatar
+                      nom={autreUtilisateur?.nom || conversationActive.autre_utilisateur_nom}
+                      prenom={autreUtilisateur?.prenom || conversationActive.autre_utilisateur_prenom}
+                      photo={autreUtilisateur?.photo || conversationActive.autre_utilisateur_photo}
+                    />
                     <div>
                       <p className="font-semibold text-gray-800 text-sm">
-                        {conversationActive.autre_utilisateur_prenom} {conversationActive.autre_utilisateur_nom}
+                        {autreUtilisateur?.prenom || conversationActive.autre_utilisateur_prenom}{' '}
+                        {autreUtilisateur?.nom || conversationActive.autre_utilisateur_nom}
                       </p>
                       <p className="text-gray-400 text-xs truncate max-w-48">
                         {conversationActive.annonce_titre}
@@ -332,7 +340,7 @@ export default function Messages() {
                   </div>
 
                   {/* Messages */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50">
                     {messages.length === 0 ? (
                       <div className="text-center py-8">
                         <p className="text-gray-400 text-sm">Commencez la conversation !</p>
@@ -340,18 +348,59 @@ export default function Messages() {
                     ) : (
                       messages.map((msg, index) => {
                         const estMoi = msg.expediteur_id === utilisateur?.id;
+                        const photoExp = estMoi
+                          ? utilisateur?.photo_profil
+                          : (autreUtilisateur?.photo || msg.expediteur_photo);
+
                         return (
-                          <div key={index} className={`flex ${estMoi ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-xs lg:max-w-md px-4 py-2.5 rounded-2xl ${
-                              estMoi
-                                ? 'bg-blue-600 text-white rounded-br-sm'
-                                : 'bg-gray-100 text-gray-800 rounded-bl-sm'
-                            }`}>
-                              <p className="text-sm leading-relaxed">{msg.contenu}</p>
-                              <p className={`text-xs mt-1 ${estMoi ? 'text-blue-200' : 'text-gray-400'}`}>
-                                {formaterHeure(msg.created_at)}
-                              </p>
+                          <div key={index} className={`flex items-end gap-2 ${estMoi ? 'justify-end' : 'justify-start'}`}>
+
+                            {/* Avatar gauche (autre) */}
+                            {!estMoi && (
+                              <div className="w-7 h-7 rounded-full bg-blue-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                {photoExp ? (
+                                  <img src={photoExp} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-blue-600 font-bold text-xs">
+                                    {msg.expediteur_prenom?.[0]}{msg.expediteur_nom?.[0]}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {/* Bulle message */}
+                            <div className={`max-w-xs lg:max-w-md ${estMoi ? 'items-end' : 'items-start'} flex flex-col`}>
+                              <div className={`px-4 py-2.5 rounded-2xl ${
+                                estMoi
+                                  ? 'bg-blue-600 text-white rounded-br-sm'
+                                  : 'bg-white text-gray-800 rounded-bl-sm shadow-sm'
+                              }`}>
+                                <p className="text-sm leading-relaxed">{msg.contenu}</p>
+                              </div>
+                              <div className={`flex items-center gap-1 mt-1 ${estMoi ? 'justify-end' : 'justify-start'}`}>
+                                <span className="text-xs text-gray-400">
+                                  {formaterHeure(msg.created_at)}
+                                </span>
+                                {estMoi && (
+                                  msg.est_lu
+                                    ? <CheckCheck size={12} className="text-blue-500" />
+                                    : <Check size={12} className="text-gray-400" />
+                                )}
+                              </div>
                             </div>
+
+                            {/* Avatar droite (moi) */}
+                            {estMoi && (
+                              <div className="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0 overflow-hidden flex items-center justify-center">
+                                {utilisateur?.photo_profil ? (
+                                  <img src={utilisateur.photo_profil} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <span className="text-white font-bold text-xs">
+                                    {utilisateur?.prenom?.[0]}{utilisateur?.nom?.[0]}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
                         );
                       })
@@ -361,7 +410,7 @@ export default function Messages() {
 
                   {/* Zone de saisie */}
                   <form onSubmit={envoyerMessage}
-                    className="p-4 border-t border-gray-100 flex gap-3">
+                    className="p-4 border-t border-gray-100 flex gap-3 bg-white">
                     <input
                       type="text"
                       value={nouveauMessage}

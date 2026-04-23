@@ -1,12 +1,34 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-
-import { useState } from 'react';
 import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import api from '../lib/api';
+
 export default function Navbar() {
   const { utilisateur, deconnexion } = useAuth();
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [nonLus, setNonLus] = useState(0);
+
+  useEffect(() => {
+    if (utilisateur) {
+      chargerNonLus();
+      // Actualiser toutes les 30 secondes
+      const interval = setInterval(chargerNonLus, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [utilisateur]);
+
+  const chargerNonLus = async () => {
+    try {
+      const response = await api.get('/messages/mes-conversations');
+      const conversations = response.data.conversations || [];
+      const total = conversations.reduce((acc, conv) => acc + (parseInt(conv.non_lus) || 0), 0);
+      setNonLus(total);
+    } catch (err) {
+      console.error('Erreur chargement non lus:', err);
+    }
+  };
 
   return (
     <nav className="bg-white shadow-md sticky top-0 z-50">
@@ -45,32 +67,35 @@ export default function Navbar() {
                   <Plus size={18} />
                   Publier
                 </Link>
-                <Link href="/messages"
-                  className="text-gray-600 hover:text-blue-600 transition">
+
+                {/* Icône message avec badge */}
+                <Link href="/messages" className="relative text-gray-600 hover:text-blue-600 transition">
                   <MessageCircle size={24} />
+                  {nonLus > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">
+                      {nonLus > 9 ? '9+' : nonLus}
+                    </span>
+                  )}
                 </Link>
-                <Link href="/dashboard"
-                  className="text-gray-600 hover:text-blue-600 transition">
+
+                <Link href="/dashboard" className="text-gray-600 hover:text-blue-600 transition">
                   <User size={24} />
                 </Link>
-                <Link href="/parametres"
-                  className="text-gray-600 hover:text-blue-600 transition">
+                <Link href="/parametres" className="text-gray-600 hover:text-blue-600 transition">
                   <Settings size={24} />
                 </Link>
-                <button onClick={deconnexion}
-                  className="text-gray-600 hover:text-red-500 transition">
+                <button onClick={deconnexion} className="text-gray-600 hover:text-red-500 transition">
                   <LogOut size={24} />
                 </button>
               </>
             ) : (
               <>
-                <Link href="/connexion"
-                  className="text-blue-600 font-medium hover:underline">
+                <Link href="/connexion" className="text-blue-600 font-medium hover:underline">
                   Connexion
                 </Link>
                 <Link href="/inscription"
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-                  S'inscrire
+                  S&apos;inscrire
                 </Link>
               </>
             )}
@@ -92,13 +117,22 @@ export default function Navbar() {
             {utilisateur ? (
               <>
                 <Link href="/publier" className="text-green-600 font-medium py-2">+ Publier une annonce</Link>
+                <Link href="/messages" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  Messages
+                  {nonLus > 0 && (
+                    <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
+                      {nonLus}
+                    </span>
+                  )}
+                </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">Mon profil</Link>
+                <Link href="/parametres" className="text-gray-600 font-medium py-2">Paramètres</Link>
                 <button onClick={deconnexion} className="text-red-500 font-medium py-2 text-left">Déconnexion</button>
               </>
             ) : (
               <>
                 <Link href="/connexion" className="text-blue-600 font-medium py-2">Connexion</Link>
-                <Link href="/inscription" className="text-blue-600 font-medium py-2">S'inscrire</Link>
+                <Link href="/inscription" className="text-blue-600 font-medium py-2">S&apos;inscrire</Link>
               </>
             )}
           </div>
