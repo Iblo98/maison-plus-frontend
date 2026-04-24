@@ -156,7 +156,20 @@ export default function Messages() {
       setNouveauMessage('');
       chargerConversations();
     } catch (erreur) {
-      toast.error(erreur?.response?.data?.message || 'Erreur envoi message');
+      const message = erreur?.response?.data?.message || 'Erreur envoi message';
+      const raisons = erreur?.response?.data?.raisons;
+
+      toast.error(message, { duration: 5000 });
+
+      if (raisons && raisons.length > 0) {
+        setTimeout(() => {
+          toast('⚠️ ' + raisons[0], {
+            icon: '🚫',
+            duration: 4000,
+            style: { background: '#FEF3C7', color: '#92400E' }
+          });
+        }, 500);
+      }
     } finally {
       setEnvoi(false);
     }
