@@ -1,6 +1,7 @@
 import { Geist } from 'next/font/google';
 import './globals.css';
 import { AuthProvider } from '../context/AuthContext';
+import { LangueProvider } from '../context/LangueContext';
 import { Toaster } from 'react-hot-toast';
 
 const geist = Geist({ subsets: ['latin'] });
@@ -15,8 +16,10 @@ export default function RootLayout({ children }) {
     <html lang="fr">
       <body className={geist.className}>
         <AuthProvider>
-          <Toaster position="top-right" />
-          {children}
+          <LangueProvider>
+            <Toaster position="top-right" />
+            {children}
+          </LangueProvider>
         </AuthProvider>
       </body>
     </html>

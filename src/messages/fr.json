@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "annonces": "Annonces",
+    "maisons": "Maisons",
+    "marketplace": "Marketplace",
+    "restaurants": "Restaurants",
+    "publier": "Publier",
+    "connexion": "Connexion",
+    "inscrire": "S'inscrire",
+    "dashboard": "Mon profil",
+    "parametres": "Paramètres",
+    "deconnexion": "Déconnexion",
+    "admin": "Admin"
+  },
+  "accueil": {
+    "titre": "Trouvez votre bien idéal",
+    "sous_titre": "La plateforme de référence pour l'immobilier au Burkina Faso et partout en Afrique",
+    "recherche_placeholder": "Rechercher une ville, un quartier...",
+    "rechercher": "Rechercher",
+    "annonces_recentes": "Annonces récentes",
+    "aucune_annonce": "Aucune annonce disponible",
+    "publier_premiere": "Publier la première annonce",
+    "annonces_verifiees": "Annonces vérifiées",
+    "gratuit": "Gratuit",
+    "pour_commencer": "Pour commencer",
+    "securise": "Sécurisé",
+    "paiements_proteges": "Paiements protégés"
+  },
+  "categories": {
+    "tout": "Tout",
+    "maisons": "Maisons",
+    "parcelles": "Parcelles",
+    "hotels": "Hôtels",
+    "objets": "Objets",
+    "restaurants": "Restaurants"
+  },
+  "annonce": {
+    "location": "Location",
+    "vente": "Vente",
+    "vues": "vues",
+    "superficie": "Superficie",
+    "pieces": "Pièces",
+    "disponible": "Disponible dès",
+    "description": "Description",
+    "caracteristiques": "Caractéristiques",
+    "localisation": "Localisation",
+    "proprietaire": "Propriétaire",
+    "contact_verifie": "Compte vérifié",
+    "appeler": "Appeler",
+    "envoyer_message": "Envoyer un message",
+    "payer": "Payer maintenant",
+    "publie_le": "Publié le",
+    "photos": "Photos",
+    "videos": "Vidéos",
+    "voir_photos": "Voir {count} photo(s)"
+  },
+  "paiement": {
+    "titre": "Paiement sécurisé",
+    "details_annonce": "Détails de l'annonce",
+    "recapitulatif": "Récapitulatif du paiement",
+    "montant_total": "Montant total",
+    "commission": "Commission Maison+",
+    "proprietaire_recoit": "Propriétaire reçoit",
+    "payer": "Payer",
+    "securise": "Paiement 100% sécurisé et crypté",
+    "succes": "Paiement réussi !",
+    "confirme": "Votre paiement a été confirmé avec succès.",
+    "telecharger_recu": "Télécharger le reçu PDF",
+    "recevoir_email": "Recevoir par email",
+    "voir_dashboard": "Voir mon dashboard",
+    "retour_accueil": "Retour à l'accueil"
+  },
+  "messages": {
+    "titre": "Messagerie",
+    "aucune_conversation": "Aucune conversation",
+    "envoyer": "Envoyer",
+    "placeholder": "Écrire un message...",
+    "suspect": "Message non autorisé — évitez les liens et numéros de téléphone"
+  },
+  "profil": {
+    "membre_depuis": "Membre depuis",
+    "annonces": "Annonces",
+    "avis": "Avis",
+    "laisser_avis": "Laisser un avis",
+    "contacter": "Contacter",
+    "note": "note",
+    "aucun_avis": "Aucun avis pour le moment"
+  },
+  "avis": {
+    "titre": "Laisser un avis",
+    "note_label": "Note",
+    "commentaire_label": "Commentaire",
+    "placeholder": "Décrivez votre expérience...",
+    "publier": "Publier l'avis",
+    "tres_mauvais": "Très mauvais",
+    "mauvais": "Mauvais",
+    "correct": "Correct",
+    "bien": "Bien",
+    "excellent": "Excellent !"
+  },
+  "auth": {
+    "connexion": "Connexion",
+    "bienvenue": "Bienvenue sur Maison+",
+    "email": "Email",
+    "mot_de_passe": "Mot de passe",
+    "se_connecter": "Se connecter",
+    "pas_de_compte": "Pas encore de compte ?",
+    "inscrire": "S'inscrire",
+    "mot_de_passe_oublie": "Mot de passe oublié ?"
+  },
+  "errors": {
+    "annonce_introuvable": "Annonce introuvable",
+    "retour_accueil": "Retour à l'accueil",
+    "erreur_serveur": "Erreur serveur"
+  },
+  "footer": {
+    "description": "2026 MaisonPlus - La plateforme immobilière de confiance au Burkina Faso et en Afrique"
+  }
+}

@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
+import { useLangue } from '../context/LangueContext';
 import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
@@ -8,6 +9,7 @@ import Notifications from './Notifications';
 
 export default function Navbar() {
   const { utilisateur, deconnexion } = useAuth();
+  const { langue, changerLangue, t } = useLangue();
   const [menuOuvert, setMenuOuvert] = useState(false);
   const [nonLus, setNonLus] = useState(0);
 
@@ -45,21 +47,29 @@ export default function Navbar() {
           {/* Menu desktop */}
           <div className="hidden md:flex items-center gap-6">
             <Link href="/annonces" className="text-gray-600 hover:text-blue-600 font-medium transition">
-              Annonces
+              {t('nav.annonces')}
             </Link>
             <Link href="/annonces?categorie=maison" className="text-gray-600 hover:text-blue-600 font-medium transition">
-              Maisons
+              {t('nav.maisons')}
             </Link>
             <Link href="/annonces?categorie=marketplace" className="text-gray-600 hover:text-blue-600 font-medium transition">
-              Marketplace
+              {t('nav.marketplace')}
             </Link>
             <Link href="/annonces?categorie=restaurant" className="text-gray-600 hover:text-blue-600 font-medium transition">
-              Restaurants
+              {t('nav.restaurants')}
             </Link>
           </div>
 
           {/* Actions */}
           <div className="hidden md:flex items-center gap-3">
+
+            {/* Bouton langue */}
+            <button
+              onClick={() => changerLangue(langue === 'fr' ? 'en' : 'fr')}
+              className="flex items-center gap-1 border border-gray-300 text-gray-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:border-blue-600 hover:text-blue-600 transition">
+              {langue === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR'}
+            </button>
+
             {utilisateur ? (
               <>
                 {/* Bouton Admin */}
@@ -67,14 +77,14 @@ export default function Navbar() {
                   <Link href="/admin"
                     className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-600 transition">
                     <Shield size={14} />
-                    Admin
+                    {t('nav.admin')}
                   </Link>
                 )}
 
                 <Link href="/publier"
                   className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-medium">
                   <Plus size={18} />
-                  Publier
+                  {t('nav.publier')}
                 </Link>
 
                 <Link href="/messages" className="relative text-gray-600 hover:text-blue-600 transition">
@@ -101,11 +111,11 @@ export default function Navbar() {
             ) : (
               <>
                 <Link href="/connexion" className="text-blue-600 font-medium hover:underline">
-                  Connexion
+                  {t('nav.connexion')}
                 </Link>
                 <Link href="/inscription"
                   className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition font-medium">
-                  S&apos;inscrire
+                  {t('nav.inscrire')}
                 </Link>
               </>
             )}
@@ -120,35 +130,43 @@ export default function Navbar() {
         {/* Menu mobile ouvert */}
         {menuOuvert && (
           <div className="md:hidden py-4 border-t flex flex-col gap-3">
-            <Link href="/annonces" className="text-gray-600 font-medium py-2">Annonces</Link>
-            <Link href="/annonces?categorie=maison" className="text-gray-600 font-medium py-2">Maisons</Link>
-            <Link href="/annonces?categorie=marketplace" className="text-gray-600 font-medium py-2">Marketplace</Link>
-            <Link href="/annonces?categorie=restaurant" className="text-gray-600 font-medium py-2">Restaurants</Link>
+            <Link href="/annonces" className="text-gray-600 font-medium py-2">{t('nav.annonces')}</Link>
+            <Link href="/annonces?categorie=maison" className="text-gray-600 font-medium py-2">{t('nav.maisons')}</Link>
+            <Link href="/annonces?categorie=marketplace" className="text-gray-600 font-medium py-2">{t('nav.marketplace')}</Link>
+            <Link href="/annonces?categorie=restaurant" className="text-gray-600 font-medium py-2">{t('nav.restaurants')}</Link>
+
+            {/* Bouton langue mobile */}
+            <button
+              onClick={() => changerLangue(langue === 'fr' ? 'en' : 'fr')}
+              className="flex items-center gap-2 border border-gray-300 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium w-fit">
+              {langue === 'fr' ? '🇬🇧 Switch to English' : '🇫🇷 Passer en Français'}
+            </button>
+
             {utilisateur ? (
               <>
                 {utilisateur?.type_compte === 'admin' && (
                   <Link href="/admin" className="text-red-500 font-medium py-2 flex items-center gap-2">
                     <Shield size={16} />
-                    Panel Admin
+                    {t('nav.admin')}
                   </Link>
                 )}
-                <Link href="/publier" className="text-green-600 font-medium py-2">+ Publier une annonce</Link>
+                <Link href="/publier" className="text-green-600 font-medium py-2">+ {t('nav.publier')}</Link>
                 <Link href="/messages" className="text-gray-600 font-medium py-2 flex items-center gap-2">
-                  Messages
+                  {t('nav.annonces')}
                   {nonLus > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
                       {nonLus}
                     </span>
                   )}
                 </Link>
-                <Link href="/dashboard" className="text-gray-600 font-medium py-2">Mon profil</Link>
-                <Link href="/parametres" className="text-gray-600 font-medium py-2">Paramètres</Link>
-                <button onClick={deconnexion} className="text-red-500 font-medium py-2 text-left">Déconnexion</button>
+                <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
+                <Link href="/parametres" className="text-gray-600 font-medium py-2">{t('nav.parametres')}</Link>
+                <button onClick={deconnexion} className="text-red-500 font-medium py-2 text-left">{t('nav.deconnexion')}</button>
               </>
             ) : (
               <>
-                <Link href="/connexion" className="text-blue-600 font-medium py-2">Connexion</Link>
-                <Link href="/inscription" className="text-blue-600 font-medium py-2">S&apos;inscrire</Link>
+                <Link href="/connexion" className="text-blue-600 font-medium py-2">{t('nav.connexion')}</Link>
+                <Link href="/inscription" className="text-blue-600 font-medium py-2">{t('nav.inscrire')}</Link>
               </>
             )}
           </div>

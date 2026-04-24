@@ -1,0 +1,119 @@
+{
+  "nav": {
+    "annonces": "Listings",
+    "maisons": "Houses",
+    "marketplace": "Marketplace",
+    "restaurants": "Restaurants",
+    "publier": "Post",
+    "connexion": "Login",
+    "inscrire": "Sign up",
+    "dashboard": "My profile",
+    "parametres": "Settings",
+    "deconnexion": "Logout",
+    "admin": "Admin"
+  },
+  "accueil": {
+    "titre": "Find your ideal property",
+    "sous_titre": "The reference platform for real estate in Burkina Faso and across Africa",
+    "recherche_placeholder": "Search a city, neighborhood...",
+    "rechercher": "Search",
+    "annonces_recentes": "Recent listings",
+    "aucune_annonce": "No listings available",
+    "publier_premiere": "Post the first listing",
+    "annonces_verifiees": "Verified listings",
+    "gratuit": "Free",
+    "pour_commencer": "To get started",
+    "securise": "Secure",
+    "paiements_proteges": "Protected payments"
+  },
+  "categories": {
+    "tout": "All",
+    "maisons": "Houses",
+    "parcelles": "Plots",
+    "hotels": "Hotels",
+    "objets": "Items",
+    "restaurants": "Restaurants"
+  },
+  "annonce": {
+    "location": "Rental",
+    "vente": "Sale",
+    "vues": "views",
+    "superficie": "Area",
+    "pieces": "Rooms",
+    "disponible": "Available from",
+    "description": "Description",
+    "caracteristiques": "Features",
+    "localisation": "Location",
+    "proprietaire": "Owner",
+    "contact_verifie": "Verified account",
+    "appeler": "Call",
+    "envoyer_message": "Send a message",
+    "payer": "Pay now",
+    "publie_le": "Published on",
+    "photos": "Photos",
+    "videos": "Videos",
+    "voir_photos": "See {count} photo(s)"
+  },
+  "paiement": {
+    "titre": "Secure payment",
+    "details_annonce": "Listing details",
+    "recapitulatif": "Payment summary",
+    "montant_total": "Total amount",
+    "commission": "Maison+ commission",
+    "proprietaire_recoit": "Owner receives",
+    "payer": "Pay",
+    "securise": "100% secure and encrypted payment",
+    "succes": "Payment successful!",
+    "confirme": "Your payment has been confirmed successfully.",
+    "telecharger_recu": "Download PDF receipt",
+    "recevoir_email": "Receive by email",
+    "voir_dashboard": "View my dashboard",
+    "retour_accueil": "Back to home"
+  },
+  "messages": {
+    "titre": "Messaging",
+    "aucune_conversation": "No conversations",
+    "envoyer": "Send",
+    "placeholder": "Write a message...",
+    "suspect": "Unauthorized message — avoid links and phone numbers"
+  },
+  "profil": {
+    "membre_depuis": "Member since",
+    "annonces": "Listings",
+    "avis": "Reviews",
+    "laisser_avis": "Leave a review",
+    "contacter": "Contact",
+    "note": "rating",
+    "aucun_avis": "No reviews yet"
+  },
+  "avis": {
+    "titre": "Leave a review",
+    "note_label": "Rating",
+    "commentaire_label": "Comment",
+    "placeholder": "Describe your experience...",
+    "publier": "Publish review",
+    "tres_mauvais": "Very bad",
+    "mauvais": "Bad",
+    "correct": "Average",
+    "bien": "Good",
+    "excellent": "Excellent!"
+  },
+  "auth": {
+    "connexion": "Login",
+    "bienvenue": "Welcome to Maison+",
+    "email": "Email",
+    "mot_de_passe": "Password",
+    "se_connecter": "Log in",
+    "pas_de_compte": "Don't have an account?",
+    "inscrire": "Sign up",
+    "mot_de_passe_oublie": "Forgot password?"
+  },
+  "errors": {
+    "annonce_introuvable": "Listing not found",
+    "retour_accueil": "Back to home",
+    "erreur_serveur": "Server error"
+  },
+  "footer": {
+    "description": "2026 MaisonPlus - The trusted real estate platform in Burkina Faso and Africa"
+  }
+}

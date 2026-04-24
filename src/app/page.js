@@ -3,9 +3,12 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import api from '../lib/api';
+import { useLangue } from '../context/LangueContext';
 import { Search, MapPin, Home, Building, ShoppingBag, UtensilsCrossed, Shield, Eye, Heart, Square } from 'lucide-react';
 import PrixDevise from '../components/PrixDevise';
+
 export default function Accueil() {
+  const { t } = useLangue();
   const [annonces, setAnnonces] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState('');
@@ -30,14 +33,13 @@ export default function Accueil() {
   };
 
   const categories = [
-    { id: '', label: 'Tout', icon: Home },
-    { id: 'maison', label: 'Maisons', icon: Home },
-    { id: 'parcelle', label: 'Parcelles', icon: Building },
-    { id: 'hotel', label: 'Hotels', icon: Building },
-    { id: 'marketplace', label: 'Objets', icon: ShoppingBag },
-    { id: 'restaurant', label: 'Restaurants', icon: UtensilsCrossed },
+    { id: '', label: t('categories.tout'), icon: Home },
+    { id: 'maison', label: t('categories.maisons'), icon: Home },
+    { id: 'parcelle', label: t('categories.parcelles'), icon: Building },
+    { id: 'hotel', label: t('categories.hotels'), icon: Building },
+    { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag },
+    { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed },
   ];
-
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -47,17 +49,17 @@ export default function Accueil() {
       <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
-            Trouvez votre <span className="text-green-400">bien ideal</span>
+            {t('accueil.titre').split(' ').slice(0, -2).join(' ')}{' '}
+            <span className="text-green-400">
+              {t('accueil.titre').split(' ').slice(-2).join(' ')}
+            </span>
           </h1>
-          <p className="text-blue-100 text-lg mb-8">
-            La plateforme de reference pour l&apos;immobilier au Burkina Faso et partout en Afrique
-          </p>
+          <p className="text-blue-100 text-lg mb-8">{t('accueil.sous_titre')}</p>
           <div className="bg-white rounded-2xl p-2 flex gap-2 max-w-2xl mx-auto shadow-lg">
             <div className="flex-1 flex items-center gap-2 px-3">
               <Search className="text-gray-400" size={20} />
-              <input
-                type="text"
-                placeholder="Rechercher une ville, un quartier..."
+              <input type="text"
+                placeholder={t('accueil.recherche_placeholder')}
                 className="flex-1 outline-none text-gray-700"
                 value={recherche}
                 onChange={(e) => setRecherche(e.target.value)}
@@ -65,7 +67,7 @@ export default function Accueil() {
             </div>
             <Link href={`/annonces?ville=${recherche}`}
               className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
-              Rechercher
+              {t('accueil.rechercher')}
             </Link>
           </div>
         </div>
@@ -76,15 +78,15 @@ export default function Accueil() {
         <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-2xl font-bold text-blue-600">100%</p>
-            <p className="text-gray-500 text-sm">Annonces verifiees</p>
+            <p className="text-gray-500 text-sm">{t('accueil.annonces_verifiees')}</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-green-500">Gratuit</p>
-            <p className="text-gray-500 text-sm">Pour commencer</p>
+            <p className="text-2xl font-bold text-green-500">{t('accueil.gratuit')}</p>
+            <p className="text-gray-500 text-sm">{t('accueil.pour_commencer')}</p>
           </div>
           <div>
-            <p className="text-2xl font-bold text-blue-600">Securise</p>
-            <p className="text-gray-500 text-sm">Paiements proteges</p>
+            <p className="text-2xl font-bold text-blue-600">{t('accueil.securise')}</p>
+            <p className="text-gray-500 text-sm">{t('accueil.paiements_proteges')}</p>
           </div>
         </div>
       </div>
@@ -111,7 +113,7 @@ export default function Accueil() {
 
       {/* Annonces */}
       <div className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Annonces recentes</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('accueil.annonces_recentes')}</h2>
 
         {chargement ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -129,10 +131,10 @@ export default function Accueil() {
         ) : annonces.length === 0 ? (
           <div className="text-center py-16">
             <Home size={64} className="text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Aucune annonce disponible</p>
+            <p className="text-gray-500 text-lg">{t('accueil.aucune_annonce')}</p>
             <Link href="/publier"
               className="mt-4 inline-block bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
-              Publier la premiere annonce
+              {t('accueil.publier_premiere')}
             </Link>
           </div>
         ) : (
@@ -144,9 +146,7 @@ export default function Accueil() {
                   {/* Image */}
                   <div className="h-52 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
                     {annonce.photo_principale ? (
-                      <img
-                        src={annonce.photo_principale}
-                        alt={annonce.titre}
+                      <img src={annonce.photo_principale} alt={annonce.titre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
@@ -161,7 +161,7 @@ export default function Accueil() {
                         ? 'bg-blue-600 text-white'
                         : 'bg-green-500 text-white'
                     }`}>
-                      {annonce.type_transaction === 'location' ? 'Location' : 'Vente'}
+                      {annonce.type_transaction === 'location' ? t('annonce.location') : t('annonce.vente')}
                     </span>
 
                     {/* Vues */}
@@ -178,7 +178,7 @@ export default function Accueil() {
                     {/* Sponsorise */}
                     {annonce.est_sponsorisee && (
                       <span className="absolute bottom-3 left-3 bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded-full">
-                        Sponsorise
+                        Sponsorisé
                       </span>
                     )}
 
@@ -188,11 +188,11 @@ export default function Accueil() {
                         <span className={`text-white font-black text-2xl px-6 py-3 rounded-2xl border-4 rotate-[-15deg] ${
                           annonce.statut === 'loue'
                             ? 'bg-red-500 border-red-300'
-                          : 'bg-gray-800 border-gray-600'
-                      }`}>
-                        {annonce.statut === 'loue' ? 'LOUÉ' : 'VENDU'}
-                      </span>
-                    </div>
+                            : 'bg-gray-800 border-gray-600'
+                        }`}>
+                          {annonce.statut === 'loue' ? 'LOUÉ' : 'VENDU'}
+                        </span>
+                      </div>
                     )}
                   </div>
 
@@ -232,9 +232,7 @@ export default function Accueil() {
             <Home className="text-blue-400" size={24} />
             <span className="text-xl font-bold">Maison<span className="text-green-400">+</span></span>
           </div>
-          <p className="text-gray-400 text-sm">
-            2026 MaisonPlus - La plateforme immobiliere de confiance au Burkina Faso et en Afrique
-          </p>
+          <p className="text-gray-400 text-sm">{t('footer.description')}</p>
         </div>
       </footer>
     </div>
