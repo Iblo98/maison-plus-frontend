@@ -4,11 +4,13 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
-import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen } from 'lucide-react';
+import { useAuth } from '../../../context/AuthContext';
+import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function DetailAnnonce() {
   const { id } = useParams();
+  const { utilisateur } = useAuth();
   const [annonce, setAnnonce] = useState(null);
   const [chargement, setChargement] = useState(true);
 
@@ -196,11 +198,21 @@ export default function DetailAnnonce() {
               </Link>
 
               <div className="space-y-3">
+                {/* Bouton Payer */}
+                {utilisateur && utilisateur.id !== annonce.utilisateur_id && (
+                  <Link href={`/paiement?annonce=${annonce.id}`}
+                    className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition">
+                    <CreditCard size={18} />
+                    Payer maintenant
+                  </Link>
+                )}
+
                 <a href={`tel:${annonce.telephone}`}
                   className="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-medium hover:bg-blue-50 transition">
                   <Phone size={18} />
                   Appeler
                 </a>
+
                 <Link href={`/messages?annonce=${annonce.id}&destinataire=${annonce.utilisateur_id}`}
                   className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                   <MessageCircle size={18} />
