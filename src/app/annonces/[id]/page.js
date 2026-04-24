@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
+import { useLangue } from '../../../context/LangueContext';
 import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image } from 'lucide-react';
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
@@ -12,6 +13,7 @@ import toast from 'react-hot-toast';
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
+  const { t } = useLangue();
   const [annonce, setAnnonce] = useState(null);
   const [medias, setMedias] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -32,7 +34,7 @@ export default function DetailAnnonce() {
       setAnnonce(annonceRes.data.annonce);
       setMedias(mediasRes.data.medias || []);
     } catch (erreur) {
-      toast.error('Annonce introuvable');
+      toast.error(t('errors.annonce_introuvable'));
     } finally {
       setChargement(false);
     }
@@ -66,9 +68,9 @@ export default function DetailAnnonce() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="text-center py-20">
-          <p className="text-gray-500 text-lg">Annonce introuvable</p>
+          <p className="text-gray-500 text-lg">{t('errors.annonce_introuvable')}</p>
           <Link href="/" className="mt-4 inline-block text-blue-600 hover:underline">
-            Retour à l&apos;accueil
+            {t('errors.retour_accueil')}
           </Link>
         </div>
       </div>
@@ -103,12 +105,12 @@ export default function DetailAnnonce() {
             <span className={`absolute top-4 left-4 text-sm font-bold px-4 py-2 rounded-full ${
               annonce.type_transaction === 'location' ? 'bg-blue-600 text-white' : 'bg-green-500 text-white'
             }`}>
-              {annonce.type_transaction === 'location' ? 'Location' : 'Vente'}
+              {annonce.type_transaction === 'location' ? t('annonce.location') : t('annonce.vente')}
             </span>
 
             <span className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full flex items-center gap-1">
               <Eye size={14} />
-              {annonce.nb_vues} vues
+              {annonce.nb_vues} {t('annonce.vues')}
             </span>
 
             {/* Compteur photos */}
@@ -122,7 +124,7 @@ export default function DetailAnnonce() {
             {photos.length > 0 && (
               <button className="absolute bottom-4 left-4 bg-white text-gray-800 text-sm px-3 py-1.5 rounded-full font-medium flex items-center gap-2 hover:bg-gray-100 transition">
                 <Image size={14} />
-                Voir {photos.length} photo{photos.length > 1 ? 's' : ''}
+                {t('annonce.photos')} ({photos.length})
               </button>
             )}
 
@@ -151,7 +153,7 @@ export default function DetailAnnonce() {
                     ongletMedia === 'photos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'
                   }`}>
                   <Image size={14} />
-                  Photos ({photos.length})
+                  {t('annonce.photos')} ({photos.length})
                 </button>
                 {videos.length > 0 && (
                   <button onClick={() => setOngletMedia('videos')}
@@ -159,7 +161,7 @@ export default function DetailAnnonce() {
                       ongletMedia === 'videos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'
                     }`}>
                     <Play size={14} />
-                    Vidéos ({videos.length})
+                    {t('annonce.videos')} ({videos.length})
                   </button>
                 )}
               </div>
@@ -172,7 +174,7 @@ export default function DetailAnnonce() {
                       className={`flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition ${
                         photoActive === index ? 'border-blue-600' : 'border-transparent'
                       }`}>
-                      <img src={photo.url} alt={`Photo ${index + 1}`}
+                      <img src={photo.url} alt={`${t('annonce.photos')} ${index + 1}`}
                         className="w-full h-full object-cover" />
                     </button>
                   ))}
@@ -182,11 +184,10 @@ export default function DetailAnnonce() {
               {/* Vidéos */}
               {ongletMedia === 'videos' && videos.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {videos.map((video, index) => (
+                  {videos.map((video) => (
                     <div key={video.id} className="rounded-xl overflow-hidden bg-black">
                       <video controls className="w-full h-48 object-cover">
                         <source src={video.url} type="video/mp4" />
-                        Votre navigateur ne supporte pas la vidéo.
                       </video>
                     </div>
                   ))}
@@ -220,13 +221,13 @@ export default function DetailAnnonce() {
 
             {/* Caractéristiques */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Caractéristiques</h2>
+              <h2 className="text-lg font-bold text-gray-800 mb-4">{t('annonce.caracteristiques')}</h2>
               <div className="grid grid-cols-2 gap-4">
                 {annonce.superficie && (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <Square className="text-blue-600" size={20} />
                     <div>
-                      <p className="text-xs text-gray-400">Superficie</p>
+                      <p className="text-xs text-gray-400">{t('annonce.superficie')}</p>
                       <p className="font-semibold">{annonce.superficie} m²</p>
                     </div>
                   </div>
@@ -235,8 +236,8 @@ export default function DetailAnnonce() {
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <DoorOpen className="text-blue-600" size={20} />
                     <div>
-                      <p className="text-xs text-gray-400">Pièces</p>
-                      <p className="font-semibold">{annonce.nb_pieces} pièces</p>
+                      <p className="text-xs text-gray-400">{t('annonce.pieces')}</p>
+                      <p className="font-semibold">{annonce.nb_pieces} {t('annonce.pieces').toLowerCase()}</p>
                     </div>
                   </div>
                 )}
@@ -244,7 +245,7 @@ export default function DetailAnnonce() {
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <Calendar className="text-blue-600" size={20} />
                     <div>
-                      <p className="text-xs text-gray-400">Disponible dès</p>
+                      <p className="text-xs text-gray-400">{t('annonce.disponible')}</p>
                       <p className="font-semibold">{formaterDate(annonce.disponible_du)}</p>
                     </div>
                   </div>
@@ -252,8 +253,8 @@ export default function DetailAnnonce() {
                 <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                   <Eye className="text-blue-600" size={20} />
                   <div>
-                    <p className="text-xs text-gray-400">Vues</p>
-                    <p className="font-semibold">{annonce.nb_vues} vues</p>
+                    <p className="text-xs text-gray-400">{t('annonce.vues')}</p>
+                    <p className="font-semibold">{annonce.nb_vues} {t('annonce.vues')}</p>
                   </div>
                 </div>
               </div>
@@ -262,7 +263,7 @@ export default function DetailAnnonce() {
             {/* Description */}
             {annonce.description && (
               <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-800 mb-3">Description</h2>
+                <h2 className="text-lg font-bold text-gray-800 mb-3">{t('annonce.description')}</h2>
                 <p className="text-gray-600 leading-relaxed">{annonce.description}</p>
               </div>
             )}
@@ -273,7 +274,7 @@ export default function DetailAnnonce() {
 
             {/* Propriétaire */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-800 mb-4">Propriétaire</h2>
+              <h2 className="text-lg font-bold text-gray-800 mb-4">{t('annonce.proprietaire')}</h2>
               <Link href={`/profil/${annonce.utilisateur_id}`}>
                 <div className="flex items-center gap-3 mb-4 hover:opacity-80 transition">
                   <div className="w-12 h-12 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
@@ -293,7 +294,7 @@ export default function DetailAnnonce() {
                     {annonce.est_verifie && (
                       <div className="flex items-center gap-1 text-green-500 text-sm">
                         <Shield size={12} />
-                        <span>Compte vérifié</span>
+                        <span>{t('annonce.contact_verifie')}</span>
                       </div>
                     )}
                   </div>
@@ -305,25 +306,25 @@ export default function DetailAnnonce() {
                   <Link href={`/paiement?annonce=${annonce.id}`}
                     className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition">
                     <CreditCard size={18} />
-                    Payer maintenant
+                    {t('annonce.payer')}
                   </Link>
                 )}
                 <a href={`tel:${annonce.telephone}`}
                   className="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-medium hover:bg-blue-50 transition">
                   <Phone size={18} />
-                  Appeler
+                  {t('annonce.appeler')}
                 </a>
                 <Link href={`/messages?annonce=${annonce.id}&destinataire=${annonce.utilisateur_id}`}
                   className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                   <MessageCircle size={18} />
-                  Envoyer un message
+                  {t('annonce.envoyer_message')}
                 </Link>
               </div>
             </div>
 
             {/* Localisation */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h2 className="text-lg font-bold text-gray-800 mb-3">Localisation</h2>
+              <h2 className="text-lg font-bold text-gray-800 mb-3">{t('annonce.localisation')}</h2>
               <div className="flex items-start gap-2 text-gray-600">
                 <MapPin size={18} className="text-blue-600 mt-0.5 flex-shrink-0" />
                 <p>{annonce.adresse_complete || `${annonce.quartier}, ${annonce.ville}`}</p>
@@ -333,7 +334,7 @@ export default function DetailAnnonce() {
             {/* Date publication */}
             <div className="bg-white rounded-2xl p-4 shadow-sm text-center">
               <p className="text-gray-400 text-sm">
-                Publié le {formaterDate(annonce.created_at)}
+                {t('annonce.publie_le')} {formaterDate(annonce.created_at)}
               </p>
             </div>
           </div>
@@ -344,25 +345,16 @@ export default function DetailAnnonce() {
       {lightboxOuvert && photos.length > 0 && (
         <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center"
           onClick={() => setLightboxOuvert(false)}>
-
-          {/* Bouton fermer */}
           <button className="absolute top-4 right-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2 z-10">
             <X size={24} />
           </button>
-
-          {/* Compteur */}
           <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded-full">
             {photoActive + 1} / {photos.length}
           </div>
-
-          {/* Image */}
-          <div className="max-w-5xl max-h-screen p-8 w-full"
-            onClick={(e) => e.stopPropagation()}>
+          <div className="max-w-5xl max-h-screen p-8 w-full" onClick={(e) => e.stopPropagation()}>
             <img src={photos[photoActive]?.url} alt=""
               className="max-w-full max-h-screen object-contain mx-auto rounded-lg shadow-2xl" />
           </div>
-
-          {/* Navigation */}
           {photos.length > 1 && (
             <>
               <button onClick={(e) => { e.stopPropagation(); photoPrecedente(); }}
@@ -375,8 +367,6 @@ export default function DetailAnnonce() {
               </button>
             </>
           )}
-
-          {/* Miniatures en bas */}
           <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-lg">
             {photos.map((photo, index) => (
               <button key={photo.id}
