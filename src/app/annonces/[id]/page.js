@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
-import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard } from 'lucide-react';
+import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image } from 'lucide-react';
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 
@@ -13,7 +13,11 @@ export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
   const [annonce, setAnnonce] = useState(null);
+  const [medias, setMedias] = useState([]);
   const [chargement, setChargement] = useState(true);
+  const [photoActive, setPhotoActive] = useState(0);
+  const [lightboxOuvert, setLightboxOuvert] = useState(false);
+  const [ongletMedia, setOngletMedia] = useState('photos');
 
   useEffect(() => {
     if (id) chargerAnnonce();
@@ -21,8 +25,12 @@ export default function DetailAnnonce() {
 
   const chargerAnnonce = async () => {
     try {
-      const response = await api.get(`/annonces/${id}`);
-      setAnnonce(response.data.annonce);
+      const [annonceRes, mediasRes] = await Promise.all([
+        api.get(`/annonces/${id}`),
+        api.get(`/medias/${id}`)
+      ]);
+      setAnnonce(annonceRes.data.annonce);
+      setMedias(mediasRes.data.medias || []);
     } catch (erreur) {
       toast.error('Annonce introuvable');
     } finally {
@@ -30,15 +38,15 @@ export default function DetailAnnonce() {
     }
   };
 
-  const formaterPrix = (prix) => {
-    return new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
-  };
+  const photos = medias.filter(m => m.type_media === 'photo');
+  const videos = medias.filter(m => m.type_media === 'video');
 
-  const formaterDate = (date) => {
-    return new Date(date).toLocaleDateString('fr-FR', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    });
-  };
+  const photoSuivante = () => setPhotoActive((prev) => (prev + 1) % photos.length);
+  const photoPrecedente = () => setPhotoActive((prev) => (prev - 1 + photos.length) % photos.length);
+
+  const formaterDate = (date) => new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', year: 'numeric'
+  });
 
   if (chargement) {
     return (
@@ -73,27 +81,119 @@ export default function DetailAnnonce() {
 
       <div className="max-w-5xl mx-auto px-4 py-8">
 
-        {/* Image principale */}
-        <div className="h-80 bg-gradient-to-br from-blue-100 to-blue-200 rounded-2xl overflow-hidden mb-6 relative">
-          {annonce.photo_principale ? (
-            <img src={annonce.photo_principale} alt={annonce.titre}
-              className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Home size={80} className="text-blue-300" />
+        {/* Galerie principale */}
+        <div className="mb-6">
+
+          {/* Photo principale grande */}
+          <div className="relative h-80 md:h-96 bg-gray-200 rounded-2xl overflow-hidden mb-2 cursor-pointer"
+            onClick={() => setLightboxOuvert(true)}>
+            {photos.length > 0 ? (
+              <img src={photos[photoActive]?.url} alt={annonce.titre}
+                className="w-full h-full object-cover" />
+            ) : annonce.photo_principale ? (
+              <img src={annonce.photo_principale} alt={annonce.titre}
+                className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Home size={80} className="text-gray-300" />
+              </div>
+            )}
+
+            {/* Badges */}
+            <span className={`absolute top-4 left-4 text-sm font-bold px-4 py-2 rounded-full ${
+              annonce.type_transaction === 'location' ? 'bg-blue-600 text-white' : 'bg-green-500 text-white'
+            }`}>
+              {annonce.type_transaction === 'location' ? 'Location' : 'Vente'}
+            </span>
+
+            <span className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full flex items-center gap-1">
+              <Eye size={14} />
+              {annonce.nb_vues} vues
+            </span>
+
+            {/* Compteur photos */}
+            {photos.length > 1 && (
+              <div className="absolute bottom-4 right-4 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded-full">
+                {photoActive + 1} / {photos.length}
+              </div>
+            )}
+
+            {/* Bouton voir toutes photos */}
+            {photos.length > 0 && (
+              <button className="absolute bottom-4 left-4 bg-white text-gray-800 text-sm px-3 py-1.5 rounded-full font-medium flex items-center gap-2 hover:bg-gray-100 transition">
+                <Image size={14} />
+                Voir {photos.length} photo{photos.length > 1 ? 's' : ''}
+              </button>
+            )}
+
+            {/* Navigation photos */}
+            {photos.length > 1 && (
+              <>
+                <button onClick={(e) => { e.stopPropagation(); photoPrecedente(); }}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-800 rounded-full p-2 transition shadow">
+                  <ChevronLeft size={20} />
+                </button>
+                <button onClick={(e) => { e.stopPropagation(); photoSuivante(); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 bg-white bg-opacity-80 hover:bg-opacity-100 text-gray-800 rounded-full p-2 transition shadow">
+                  <ChevronRight size={20} />
+                </button>
+              </>
+            )}
+          </div>
+
+          {/* Miniatures + onglets */}
+          {(photos.length > 1 || videos.length > 0) && (
+            <div>
+              {/* Onglets Photos/Vidéos */}
+              <div className="flex gap-2 mb-3">
+                <button onClick={() => setOngletMedia('photos')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                    ongletMedia === 'photos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'
+                  }`}>
+                  <Image size={14} />
+                  Photos ({photos.length})
+                </button>
+                {videos.length > 0 && (
+                  <button onClick={() => setOngletMedia('videos')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      ongletMedia === 'videos' ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 border'
+                    }`}>
+                    <Play size={14} />
+                    Vidéos ({videos.length})
+                  </button>
+                )}
+              </div>
+
+              {/* Miniatures photos */}
+              {ongletMedia === 'photos' && (
+                <div className="flex gap-2 overflow-x-auto pb-1">
+                  {photos.map((photo, index) => (
+                    <button key={photo.id} onClick={() => setPhotoActive(index)}
+                      className={`flex-shrink-0 w-20 h-16 rounded-xl overflow-hidden border-2 transition ${
+                        photoActive === index ? 'border-blue-600' : 'border-transparent'
+                      }`}>
+                      <img src={photo.url} alt={`Photo ${index + 1}`}
+                        className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Vidéos */}
+              {ongletMedia === 'videos' && videos.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {videos.map((video, index) => (
+                    <div key={video.id} className="rounded-xl overflow-hidden bg-black">
+                      <video controls className="w-full h-48 object-cover">
+                        <source src={video.url} type="video/mp4" />
+                        Votre navigateur ne supporte pas la vidéo.
+                      </video>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
-          <span className={`absolute top-4 left-4 text-sm font-bold px-4 py-2 rounded-full ${
-            annonce.type_transaction === 'location'
-              ? 'bg-blue-600 text-white'
-              : 'bg-green-500 text-white'
-          }`}>
-            {annonce.type_transaction === 'location' ? 'Location' : 'Vente'}
-          </span>
-          <span className="absolute top-4 right-4 bg-black bg-opacity-50 text-white text-sm px-3 py-1 rounded-full flex items-center gap-1">
-            <Eye size={14} />
-            {annonce.nb_vues} vues
-          </span>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -201,7 +301,6 @@ export default function DetailAnnonce() {
               </Link>
 
               <div className="space-y-3">
-                {/* Bouton Payer */}
                 {utilisateur && utilisateur.id !== annonce.utilisateur_id && (
                   <Link href={`/paiement?annonce=${annonce.id}`}
                     className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition">
@@ -209,13 +308,11 @@ export default function DetailAnnonce() {
                     Payer maintenant
                   </Link>
                 )}
-
                 <a href={`tel:${annonce.telephone}`}
                   className="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-medium hover:bg-blue-50 transition">
                   <Phone size={18} />
                   Appeler
                 </a>
-
                 <Link href={`/messages?annonce=${annonce.id}&destinataire=${annonce.utilisateur_id}`}
                   className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                   <MessageCircle size={18} />
@@ -242,6 +339,57 @@ export default function DetailAnnonce() {
           </div>
         </div>
       </div>
+
+      {/* Lightbox */}
+      {lightboxOuvert && photos.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-95 z-50 flex items-center justify-center"
+          onClick={() => setLightboxOuvert(false)}>
+
+          {/* Bouton fermer */}
+          <button className="absolute top-4 right-4 text-white hover:text-gray-300 bg-black bg-opacity-50 rounded-full p-2 z-10">
+            <X size={24} />
+          </button>
+
+          {/* Compteur */}
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 text-white text-sm bg-black bg-opacity-50 px-3 py-1 rounded-full">
+            {photoActive + 1} / {photos.length}
+          </div>
+
+          {/* Image */}
+          <div className="max-w-5xl max-h-screen p-8 w-full"
+            onClick={(e) => e.stopPropagation()}>
+            <img src={photos[photoActive]?.url} alt=""
+              className="max-w-full max-h-screen object-contain mx-auto rounded-lg shadow-2xl" />
+          </div>
+
+          {/* Navigation */}
+          {photos.length > 1 && (
+            <>
+              <button onClick={(e) => { e.stopPropagation(); photoPrecedente(); }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition">
+                <ChevronLeft size={28} />
+              </button>
+              <button onClick={(e) => { e.stopPropagation(); photoSuivante(); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white bg-black bg-opacity-50 hover:bg-opacity-70 rounded-full p-3 transition">
+                <ChevronRight size={28} />
+              </button>
+            </>
+          )}
+
+          {/* Miniatures en bas */}
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 overflow-x-auto max-w-lg">
+            {photos.map((photo, index) => (
+              <button key={photo.id}
+                onClick={(e) => { e.stopPropagation(); setPhotoActive(index); }}
+                className={`flex-shrink-0 w-14 h-10 rounded-lg overflow-hidden border-2 transition ${
+                  photoActive === index ? 'border-white' : 'border-transparent opacity-60'
+                }`}>
+                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
