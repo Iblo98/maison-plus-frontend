@@ -22,40 +22,49 @@ export default function CarteAnnonces({ annonces = [] }) {
 
 function CarteClient({ annonces }) {
   useEffect(() => {
-    // Charger Leaflet dynamiquement
-    const L = require('leaflet');
-    require('leaflet/dist/leaflet.css');
+    // Injecter le CSS Leaflet via un lien dans le head
+    const lien = document.createElement('link');
+    lien.rel = 'stylesheet';
+    lien.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(lien);
 
-    // Corriger les icônes Leaflet
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-    });
+    // Charger Leaflet via script
+    const script = document.createElement('script');
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => initialiserCarte();
+    document.head.appendChild(script);
 
-    // Supprimer la carte existante
+    return () => {
+      document.head.removeChild(lien);
+      document.head.removeChild(script);
+    };
+  }, [annonces]);
+
+  const initialiserCarte = () => {
+    const L = window.L;
+    if (!L) return;
+
     const container = document.getElementById('carte-annonces');
     if (!container) return;
+
+    // Supprimer carte existante
     if (container._leaflet_id) {
       container._leaflet_id = null;
       container.innerHTML = '';
     }
 
-    // Créer la carte centrée sur Ouagadougou
+    // Créer la carte
     const carte = L.map('carte-annonces').setView([12.3569, -1.5353], 12);
 
-    // Tuiles OpenStreetMap
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(carte);
 
-    // Ajouter les marqueurs
+    // Marqueurs
     annonces.forEach((annonce) => {
       if (annonce.latitude && annonce.longitude) {
         const couleur = annonce.type_transaction === 'location' ? '#2563EB' : '#16A34A';
 
-        // Icône personnalisée
         const icone = L.divIcon({
           html: `
             <div style="
@@ -101,21 +110,20 @@ function CarteClient({ annonces }) {
       }
     });
 
-    // Si aucun marqueur, centrer sur Ouagadougou
+    // Ajuster la vue
     const annoncesAvecCoords = annonces.filter(a => a.latitude && a.longitude);
     if (annoncesAvecCoords.length > 0) {
       const bounds = L.latLngBounds(
-        annoncesAvecCoords.map(a => [a.latitude, a.longitude])
+        annoncesAvecCoords.map(a => [parseFloat(a.latitude), parseFloat(a.longitude)])
       );
       carte.fitBounds(bounds, { padding: [50, 50] });
     }
-
-    return () => {
-      carte.remove();
-    };
-  }, [annonces]);
+  };
 
   return (
-    <div id="carte-annonces" className="w-full h-96 rounded-2xl overflow-hidden z-0" />
+    <div id="carte-annonces"
+      className="w-full rounded-2xl overflow-hidden z-0"
+      style={{ height: '500px' }}
+    />
   );
 }
