@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Home, Upload, X } from 'lucide-react';
+import { Home, Upload, X, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function Publier() {
@@ -15,6 +15,8 @@ export default function Publier() {
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
   const [annonceId, setAnnonceId] = useState(null);
+  const [documentsAUploader, setDocumentsAUploader] = useState([]);
+  const [typeDocumentSelectionne, setTypeDocumentSelectionne] = useState('titre_propriete');
   const [form, setForm] = useState({
     titre: '',
     description: '',
@@ -75,9 +77,7 @@ export default function Publier() {
     setChargement(true);
     try {
       const donneesAnnonce = { ...form };
-      if (!donneesAnnonce.disponible_au) {
-        delete donneesAnnonce.disponible_au;
-      }
+      if (!donneesAnnonce.disponible_au) delete donneesAnnonce.disponible_au;
       const response = await api.post('/annonces', donneesAnnonce);
       const id = response.data.annonce.id;
       setAnnonceId(id);
@@ -88,6 +88,21 @@ export default function Publier() {
     } finally {
       setChargement(false);
     }
+  };
+
+  const ajouterDocument = (e) => {
+    const fichier = e.target.files[0];
+    if (!fichier) return;
+    setDocumentsAUploader(prev => [...prev, {
+      fichier,
+      nom: fichier.name,
+      type: typeDocumentSelectionne
+    }]);
+    toast.success('Document ajouté !');
+  };
+
+  const supprimerDocumentLocal = (index) => {
+    setDocumentsAUploader(prev => prev.filter((_, i) => i !== index));
   };
 
   const uploadMedias = async () => {
@@ -125,6 +140,23 @@ export default function Publier() {
         });
       }
 
+      // Upload documents si présents
+      if (documentsAUploader.length > 0) {
+        for (const doc of documentsAUploader) {
+          const formDoc = new FormData();
+          formDoc.append('document', doc.fichier);
+          formDoc.append('annonce_id', annonceId);
+          formDoc.append('type_document', doc.type);
+          formDoc.append('nom', doc.nom);
+          await fetch('http://localhost:3000/api/documents/upload', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formDoc
+          });
+        }
+        toast.success(`${documentsAUploader.length} document(s) uploadé(s) !`);
+      }
+
       toast.success('Annonce publiée avec succès !');
       router.push('/dashboard');
     } catch (erreur) {
@@ -143,9 +175,7 @@ export default function Publier() {
     setPhotos([...photos, ...fichiers]);
   };
 
-  const supprimerPhoto = (index) => {
-    setPhotos(photos.filter((_, i) => i !== index));
-  };
+  const supprimerPhoto = (index) => setPhotos(photos.filter((_, i) => i !== index));
 
   const ajouterVideos = (e) => {
     const fichiers = Array.from(e.target.files);
@@ -156,9 +186,7 @@ export default function Publier() {
     setVideos([...videos, ...fichiers]);
   };
 
-  const supprimerVideo = (index) => {
-    setVideos(videos.filter((_, i) => i !== index));
-  };
+  const supprimerVideo = (index) => setVideos(videos.filter((_, i) => i !== index));
 
   const categories = [
     { id: 'maison', label: 'Maison' },
@@ -174,6 +202,13 @@ export default function Publier() {
     { id: 'semaine', label: '/semaine' },
     { id: 'mois', label: '/mois' },
     { id: 'annee', label: '/an' },
+  ];
+
+  const typesDocuments = [
+    { id: 'titre_propriete', label: 'Titre de propriété' },
+    { id: 'plan_cadastral', label: 'Plan cadastral' },
+    { id: 'diagnostic', label: 'Diagnostic technique' },
+    { id: 'autre', label: 'Autre document' },
   ];
 
   return (
@@ -197,7 +232,7 @@ export default function Publier() {
 
         <div className="bg-white rounded-2xl shadow-sm p-6">
 
-          {/* Etape 1 — Informations */}
+          {/* Etape 1 */}
           {etape === 1 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Informations</h2>
@@ -253,7 +288,6 @@ export default function Publier() {
                 />
               </div>
 
-              {/* Prix + période */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Prix (XOF) <span className="text-red-500">*</span></label>
                 <div className="flex gap-2">
@@ -289,7 +323,6 @@ export default function Publier() {
                 </div>
               </div>
 
-              {/* Localisation */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Ville <span className="text-red-500">*</span></label>
                 <input type="text" name="ville" value={form.ville} onChange={handleChange}
@@ -314,28 +347,21 @@ export default function Publier() {
                 />
               </div>
 
-              {/* Disponibilité */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Disponible dès <span className="text-red-500">*</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Disponible dès <span className="text-red-500">*</span></label>
                   <input type="date" name="disponible_du" value={form.disponible_du} onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span>
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span></label>
                   <input type="date" name="disponible_au" value={form.disponible_au} onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
-                  <p className="text-gray-400 text-xs mt-1">Laissez vide si indéfini</p>
                 </div>
               </div>
 
-              {/* Résumé */}
               {form.titre && (
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                   <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
@@ -360,7 +386,7 @@ export default function Publier() {
             </div>
           )}
 
-          {/* Etape 2 — Confirmation */}
+          {/* Etape 2 */}
           {etape === 2 && (
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Confirmer l&apos;annonce</h2>
@@ -395,7 +421,7 @@ export default function Publier() {
             </div>
           )}
 
-          {/* Etape 3 — Photos et vidéos */}
+          {/* Etape 3 — Photos, vidéos et documents */}
           {etape === 3 && (
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-gray-800">Photos et vidéos</h2>
@@ -406,15 +432,11 @@ export default function Publier() {
                   Photos <span className="text-red-500">*</span>
                   <span className="text-gray-400 font-normal ml-1">(minimum 2, maximum 5)</span>
                 </label>
-
                 <div className="grid grid-cols-3 gap-3 mb-3">
                   {photos.map((photo, index) => (
                     <div key={index} className="relative">
-                      <img
-                        src={URL.createObjectURL(photo)}
-                        alt={`Photo ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-xl"
-                      />
+                      <img src={URL.createObjectURL(photo)} alt={`Photo ${index + 1}`}
+                        className="w-full h-24 object-cover rounded-xl" />
                       {index === 0 && (
                         <span className="absolute bottom-1 left-1 bg-blue-600 text-white text-xs px-1.5 py-0.5 rounded">
                           Principale
@@ -426,17 +448,15 @@ export default function Publier() {
                       </button>
                     </div>
                   ))}
-
                   {photos.length < 5 && (
                     <div className="relative border-2 border-dashed border-gray-300 rounded-xl h-24 flex items-center justify-center hover:border-blue-400 transition cursor-pointer">
                       <Upload size={24} className="text-gray-300" />
                       <input type="file" accept="image/*" multiple onChange={ajouterPhotos}
-                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                      />
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                     </div>
                   )}
                 </div>
-                <p className="text-gray-400 text-xs">La première photo sera la photo principale de l&apos;annonce</p>
+                <p className="text-gray-400 text-xs">La première photo sera la photo principale</p>
               </div>
 
               {/* Vidéos */}
@@ -444,30 +464,69 @@ export default function Publier() {
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Vidéos <span className="text-gray-400 font-normal">(optionnel, maximum 4)</span>
                 </label>
-
                 <div className="space-y-2 mb-3">
                   {videos.map((video, index) => (
                     <div key={index} className="flex items-center justify-between bg-gray-50 rounded-xl px-4 py-2">
                       <span className="text-gray-600 text-sm truncate">{video.name}</span>
-                      <button onClick={() => supprimerVideo(index)}
-                        className="text-red-500 hover:text-red-700 ml-2">
+                      <button onClick={() => supprimerVideo(index)} className="text-red-500 hover:text-red-700 ml-2">
                         <X size={16} />
                       </button>
                     </div>
                   ))}
                 </div>
-
                 {videos.length < 4 && (
                   <div className="relative border-2 border-dashed border-gray-300 rounded-xl p-4 text-center hover:border-blue-400 transition cursor-pointer">
                     <Upload size={24} className="text-gray-300 mx-auto mb-1" />
                     <p className="text-gray-400 text-sm">Cliquez pour ajouter une vidéo</p>
-                    <p className="text-gray-400 text-xs">MP4 ou MOV — Max 100MB — 10s à 3min</p>
                     <input type="file" accept="video/*" multiple onChange={ajouterVideos}
-                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
-                    />
+                      className="absolute inset-0 opacity-0 cursor-pointer w-full h-full" />
                   </div>
                 )}
               </div>
+
+              {/* Documents officiels */}
+              {(form.type_transaction === 'vente' &&
+                ['maison', 'parcelle', 'hotel'].includes(form.categorie)) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Documents officiels
+                    <span className="text-gray-400 font-normal ml-1">(optionnel — rassure les acheteurs)</span>
+                  </label>
+
+                  <div className="space-y-2 mb-3">
+                    {documentsAUploader.map((doc, index) => (
+                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl">
+                        <div className="flex items-center gap-2">
+                          <FileText size={16} className="text-blue-600" />
+                          <span className="text-sm text-gray-700">{doc.nom}</span>
+                          <span className="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">
+                            {typesDocuments.find(t => t.id === doc.type)?.label}
+                          </span>
+                        </div>
+                        <button onClick={() => supprimerDocumentLocal(index)}
+                          className="text-red-400 hover:text-red-600 transition">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="border-2 border-dashed border-gray-200 rounded-xl p-4 space-y-3">
+                    <select value={typeDocumentSelectionne}
+                      onChange={(e) => setTypeDocumentSelectionne(e.target.value)}
+                      className="w-full border border-gray-200 rounded-xl px-4 py-2 outline-none focus:border-blue-500 text-sm">
+                      {typesDocuments.map(t => (
+                        <option key={t.id} value={t.id}>{t.label}</option>
+                      ))}
+                    </select>
+                    <label className="flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-3 rounded-xl cursor-pointer hover:bg-blue-100 transition">
+                      <Upload size={18} />
+                      <span className="text-sm font-medium">Ajouter un document (PDF ou image)</span>
+                      <input type="file" accept=".pdf,image/*" onChange={ajouterDocument} className="hidden" />
+                    </label>
+                  </div>
+                </div>
+              )}
 
               <button onClick={uploadMedias}
                 disabled={chargement || photos.length < 2}

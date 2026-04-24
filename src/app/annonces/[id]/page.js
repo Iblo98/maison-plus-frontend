@@ -6,7 +6,7 @@ import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useLangue } from '../../../context/LangueContext';
-import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image } from 'lucide-react';
+import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image, FileText, Download } from 'lucide-react';
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 
@@ -16,6 +16,7 @@ export default function DetailAnnonce() {
   const { t } = useLangue();
   const [annonce, setAnnonce] = useState(null);
   const [medias, setMedias] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [photoActive, setPhotoActive] = useState(0);
   const [lightboxOuvert, setLightboxOuvert] = useState(false);
@@ -27,12 +28,14 @@ export default function DetailAnnonce() {
 
   const chargerAnnonce = async () => {
     try {
-      const [annonceRes, mediasRes] = await Promise.all([
+      const [annonceRes, mediasRes, documentsRes] = await Promise.all([
         api.get(`/annonces/${id}`),
-        api.get(`/medias/${id}`)
+        api.get(`/medias/${id}`),
+        api.get(`/documents/annonce/${id}`)
       ]);
       setAnnonce(annonceRes.data.annonce);
       setMedias(mediasRes.data.medias || []);
+      setDocuments(documentsRes.data.documents || []);
     } catch (erreur) {
       toast.error(t('errors.annonce_introuvable'));
     } finally {
@@ -85,8 +88,6 @@ export default function DetailAnnonce() {
 
         {/* Galerie principale */}
         <div className="mb-6">
-
-          {/* Photo principale grande */}
           <div className="relative h-80 md:h-96 bg-gray-200 rounded-2xl overflow-hidden mb-2 cursor-pointer"
             onClick={() => setLightboxOuvert(true)}>
             {photos.length > 0 ? (
@@ -101,7 +102,6 @@ export default function DetailAnnonce() {
               </div>
             )}
 
-            {/* Badges */}
             <span className={`absolute top-4 left-4 text-sm font-bold px-4 py-2 rounded-full ${
               annonce.type_transaction === 'location' ? 'bg-blue-600 text-white' : 'bg-green-500 text-white'
             }`}>
@@ -113,14 +113,12 @@ export default function DetailAnnonce() {
               {annonce.nb_vues} {t('annonce.vues')}
             </span>
 
-            {/* Compteur photos */}
             {photos.length > 1 && (
               <div className="absolute bottom-4 right-4 bg-black bg-opacity-60 text-white text-sm px-3 py-1 rounded-full">
                 {photoActive + 1} / {photos.length}
               </div>
             )}
 
-            {/* Bouton voir toutes photos */}
             {photos.length > 0 && (
               <button className="absolute bottom-4 left-4 bg-white text-gray-800 text-sm px-3 py-1.5 rounded-full font-medium flex items-center gap-2 hover:bg-gray-100 transition">
                 <Image size={14} />
@@ -128,7 +126,6 @@ export default function DetailAnnonce() {
               </button>
             )}
 
-            {/* Navigation photos */}
             {photos.length > 1 && (
               <>
                 <button onClick={(e) => { e.stopPropagation(); photoPrecedente(); }}
@@ -143,10 +140,8 @@ export default function DetailAnnonce() {
             )}
           </div>
 
-          {/* Miniatures + onglets */}
           {(photos.length > 1 || videos.length > 0) && (
             <div>
-              {/* Onglets Photos/Vidéos */}
               <div className="flex gap-2 mb-3">
                 <button onClick={() => setOngletMedia('photos')}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition ${
@@ -166,7 +161,6 @@ export default function DetailAnnonce() {
                 )}
               </div>
 
-              {/* Miniatures photos */}
               {ongletMedia === 'photos' && (
                 <div className="flex gap-2 overflow-x-auto pb-1">
                   {photos.map((photo, index) => (
@@ -181,7 +175,6 @@ export default function DetailAnnonce() {
                 </div>
               )}
 
-              {/* Vidéos */}
               {ongletMedia === 'videos' && videos.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {videos.map((video) => (
@@ -265,6 +258,39 @@ export default function DetailAnnonce() {
               <div className="bg-white rounded-2xl p-6 shadow-sm">
                 <h2 className="text-lg font-bold text-gray-800 mb-3">{t('annonce.description')}</h2>
                 <p className="text-gray-600 leading-relaxed">{annonce.description}</p>
+              </div>
+            )}
+
+            {/* Documents officiels */}
+            {documents.length > 0 && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                  <FileText size={20} className="text-blue-600" />
+                  Documents officiels
+                </h2>
+                <div className="space-y-3">
+                  {documents.map((doc) => (
+                    <div key={doc.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                          <FileText size={18} className="text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-800 text-sm">{doc.nom}</p>
+                          <p className="text-gray-400 text-xs capitalize">
+                            {doc.type_document?.replace(/_/g, ' ')}
+                          </p>
+                        </div>
+                      </div>
+                      <a href={doc.url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 bg-blue-600 text-white px-3 py-1.5 rounded-lg text-xs font-medium hover:bg-blue-700 transition">
+                        <Download size={14} />
+                        Voir
+                      </a>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </div>
