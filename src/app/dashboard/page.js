@@ -128,6 +128,21 @@ export default function Dashboard() {
     );
   }
 
+  const marquerStatut = async (id, statut) => {
+  try {
+    await api.put(`/annonces/${id}/statut`, { statut });
+    const messages = {
+      'loue': '🏠 Annonce marquée comme louée !',
+      'vendu': '🔑 Annonce marquée comme vendue !',
+      'publiee': '✅ Annonce remise en ligne !'
+    };
+    toast.success(messages[statut]);
+    chargerDonnees();
+  } catch (erreur) {
+    toast.error('Erreur lors de la mise à jour');
+  }
+};
+
   const photoCouverture = profil?.profil?.photo_couverture;
   const photoProfil = profil?.profil?.photo_profil_url || utilisateur?.photo_profil;
 
@@ -292,11 +307,39 @@ export default function Dashboard() {
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                         <Eye size={18} />
                       </Link>
-                      <button onClick={() => supprimerAnnonce(annonce.id)}
-                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
+
+                      {/* Bouton Loué/Vendu */}
+                      {annonce.statut === 'publiee' && (
+                        <div className="relative group">
+                          <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition text-xs font-medium px-3">
+                            Marquer
+                          </button>
+                          <div className="absolute right-0 top-8 bg-white shadow-xl rounded-xl overflow-hidden z-10 hidden group-hover:block w-40 border border-gray-100">
+                            <button onClick={() => marquerStatut(annonce.id, 'loue')}
+                              className="w-full text-left px-4 py-2.5 text-sm hover:bg-red-50 text-red-600 font-medium flex items-center gap-2">
+                              🏠 Loué
+                            </button>
+                            <button onClick={() => marquerStatut(annonce.id, 'vendu')}
+                              className="w-full text-left px-4 py-2.5 text-sm hover:bg-gray-50 text-gray-700 font-medium flex items-center gap-2">
+                              🔑 Vendu
+                            </button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Remettre en ligne */}
+                        {(annonce.statut === 'loue' || annonce.statut === 'vendu') && (
+                          <button onClick={() => marquerStatut(annonce.id, 'publiee')}
+                            className="text-xs text-blue-600 hover:underline px-2">
+                            Remettre en ligne
+                          </button>
+                        )}
+
+                        <button onClick={() => supprimerAnnonce(annonce.id)}
+                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
                   </div>
                 );
               })}

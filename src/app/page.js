@@ -181,6 +181,19 @@ export default function Accueil() {
                         Sponsorise
                       </span>
                     )}
+
+                    {/* Badge Loué/Vendu */}
+                    {(annonce.statut === 'loue' || annonce.statut === 'vendu') && (
+                      <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
+                        <span className={`text-white font-black text-2xl px-6 py-3 rounded-2xl border-4 rotate-[-15deg] ${
+                          annonce.statut === 'loue'
+                            ? 'bg-red-500 border-red-300'
+                          : 'bg-gray-800 border-gray-600'
+                      }`}>
+                        {annonce.statut === 'loue' ? 'LOUÉ' : 'VENDU'}
+                      </span>
+                    </div>
+                    )}
                   </div>
 
                   {/* Infos */}
