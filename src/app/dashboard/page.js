@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings } from 'lucide-react';
+import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings, Star } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImageCropper from '../../components/ImageCropper';
 import Lightbox from '../../components/Lightbox';
@@ -306,6 +306,13 @@ export default function Dashboard() {
                       <Link href={`/annonces/${annonce.id}`}
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                         <Eye size={18} />
+                      </Link>
+
+                      {/* Bouton Sponsoriser */}
+                      <Link href={`/sponsoriser?annonce=${annonce.id}`}
+                        className="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-lg transition"
+                        title="Sponsoriser">
+                        <Star size={16} />
                       </Link>
 
                       {/* Bouton Loué/Vendu */}
