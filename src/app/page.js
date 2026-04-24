@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import api from '../lib/api';
 import { Search, MapPin, Home, Building, ShoppingBag, UtensilsCrossed, Shield, Eye, Heart, Square } from 'lucide-react';
-
+import PrixDevise from '../components/PrixDevise';
 export default function Accueil() {
   const [annonces, setAnnonces] = useState([]);
   const [chargement, setChargement] = useState(true);
@@ -38,9 +38,6 @@ export default function Accueil() {
     { id: 'restaurant', label: 'Restaurants', icon: UtensilsCrossed },
   ];
 
-  const formaterPrix = (prix) => {
-    return new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -202,9 +199,7 @@ export default function Accueil() {
                       </div>
                     )}
                     <div className="flex items-center justify-between">
-                      <p className="text-orange-500 font-bold text-lg">
-                        {formaterPrix(annonce.prix)}
-                      </p>
+                      <PrixDevise prix={annonce.prix} />
                       {annonce.est_verifie && (
                         <Shield size={16} className="text-green-500" />
                       )}

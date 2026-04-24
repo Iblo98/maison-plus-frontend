@@ -6,6 +6,7 @@ import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard } from 'lucide-react';
+import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 
 export default function DetailAnnonce() {
@@ -107,12 +108,14 @@ export default function DetailAnnonce() {
                 <MapPin size={16} />
                 <span>{annonce.quartier}, {annonce.ville}</span>
               </div>
-              <p className="text-3xl font-bold text-orange-500">
-                {formaterPrix(annonce.prix)}
+              <div className="flex items-end gap-3">
+                <PrixDevise prix={annonce.prix} className="text-3xl" />
                 {annonce.type_transaction === 'location' && (
-                  <span className="text-base text-gray-400 font-normal"> /mois</span>
+                  <span className="text-base text-gray-400 font-normal mb-1">
+                    /{annonce.periode || 'mois'}
+                  </span>
                 )}
-              </p>
+              </div>
             </div>
 
             {/* Caractéristiques */}
