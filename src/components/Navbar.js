@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
-import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings } from 'lucide-react';
+import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 import Notifications from './Notifications';
@@ -14,7 +14,6 @@ export default function Navbar() {
   useEffect(() => {
     if (utilisateur) {
       chargerNonLus();
-      // Actualiser toutes les 30 secondes
       const interval = setInterval(chargerNonLus, 30000);
       return () => clearInterval(interval);
     }
@@ -63,13 +62,21 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {utilisateur ? (
               <>
+                {/* Bouton Admin */}
+                {utilisateur?.type_compte === 'admin' && (
+                  <Link href="/admin"
+                    className="flex items-center gap-1 bg-red-500 text-white px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-red-600 transition">
+                    <Shield size={14} />
+                    Admin
+                  </Link>
+                )}
+
                 <Link href="/publier"
                   className="flex items-center gap-2 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition font-medium">
                   <Plus size={18} />
                   Publier
                 </Link>
 
-                {/* Icône message avec badge */}
                 <Link href="/messages" className="relative text-gray-600 hover:text-blue-600 transition">
                   <MessageCircle size={24} />
                   {nonLus > 0 && (
@@ -80,7 +87,7 @@ export default function Navbar() {
                 </Link>
 
                 <Notifications />
-                
+
                 <Link href="/dashboard" className="text-gray-600 hover:text-blue-600 transition">
                   <User size={24} />
                 </Link>
@@ -119,6 +126,12 @@ export default function Navbar() {
             <Link href="/annonces?categorie=restaurant" className="text-gray-600 font-medium py-2">Restaurants</Link>
             {utilisateur ? (
               <>
+                {utilisateur?.type_compte === 'admin' && (
+                  <Link href="/admin" className="text-red-500 font-medium py-2 flex items-center gap-2">
+                    <Shield size={16} />
+                    Panel Admin
+                  </Link>
+                )}
                 <Link href="/publier" className="text-green-600 font-medium py-2">+ Publier une annonce</Link>
                 <Link href="/messages" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   Messages
