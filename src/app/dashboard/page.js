@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings, Star } from 'lucide-react';
+import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings, Star, TrendingUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImageCropper from '../../components/ImageCropper';
 import Lightbox from '../../components/Lightbox';
@@ -103,6 +103,21 @@ export default function Dashboard() {
     }
   };
 
+  const marquerStatut = async (id, statut) => {
+    try {
+      await api.put(`/annonces/${id}/statut`, { statut });
+      const messages = {
+        'loue': '🏠 Annonce marquée comme louée !',
+        'vendu': '🔑 Annonce marquée comme vendue !',
+        'publiee': '✅ Annonce remise en ligne !'
+      };
+      toast.success(messages[statut]);
+      chargerDonnees();
+    } catch (erreur) {
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   const formaterPrix = (prix) => new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
 
   const getStatutBadge = (statut) => {
@@ -127,21 +142,6 @@ export default function Dashboard() {
       </div>
     );
   }
-
-  const marquerStatut = async (id, statut) => {
-  try {
-    await api.put(`/annonces/${id}/statut`, { statut });
-    const messages = {
-      'loue': '🏠 Annonce marquée comme louée !',
-      'vendu': '🔑 Annonce marquée comme vendue !',
-      'publiee': '✅ Annonce remise en ligne !'
-    };
-    toast.success(messages[statut]);
-    chargerDonnees();
-  } catch (erreur) {
-    toast.error('Erreur lors de la mise à jour');
-  }
-};
 
   const photoCouverture = profil?.profil?.photo_couverture;
   const photoProfil = profil?.profil?.photo_profil_url || utilisateur?.photo_profil;
@@ -180,13 +180,13 @@ export default function Dashboard() {
           {/* Info profil */}
           <div className="px-6 pb-6">
             <div className="flex items-end justify-between -mt-12 mb-4">
+
               {/* Photo de profil */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-full border-4 border-white bg-blue-100 overflow-hidden shadow-md cursor-pointer"
                   onClick={() => { if (photoProfil) { setLightboxImage(photoProfil); setLightboxTitre('Photo de profil'); }}}>
                   {photoProfil ? (
-                    <img src={photoProfil} alt="Profil"
-                      className="w-full h-full object-cover" />
+                    <img src={photoProfil} alt="Profil" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <span className="text-blue-600 font-bold text-3xl">
@@ -208,6 +208,11 @@ export default function Dashboard() {
 
               {/* Actions */}
               <div className="flex items-center gap-2 mt-14">
+                <Link href="/statistiques"
+                  className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
+                  <TrendingUp size={16} />
+                  Statistiques
+                </Link>
                 <Link href="/parametres"
                   className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
                   <Settings size={16} />
@@ -239,7 +244,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Statistiques */}
+        {/* Statistiques rapides */}
         {profil?.statistiques && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
@@ -335,18 +340,18 @@ export default function Dashboard() {
                       )}
 
                       {/* Remettre en ligne */}
-                        {(annonce.statut === 'loue' || annonce.statut === 'vendu') && (
-                          <button onClick={() => marquerStatut(annonce.id, 'publiee')}
-                            className="text-xs text-blue-600 hover:underline px-2">
-                            Remettre en ligne
-                          </button>
-                        )}
-
-                        <button onClick={() => supprimerAnnonce(annonce.id)}
-                          className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
-                          <Trash2 size={18} />
+                      {(annonce.statut === 'loue' || annonce.statut === 'vendu') && (
+                        <button onClick={() => marquerStatut(annonce.id, 'publiee')}
+                          className="text-xs text-blue-600 hover:underline px-2">
+                          Remettre en ligne
                         </button>
-                      </div>
+                      )}
+
+                      <button onClick={() => supprimerAnnonce(annonce.id)}
+                        className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition">
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 );
               })}
