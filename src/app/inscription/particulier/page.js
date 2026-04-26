@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
+import api from '../../../lib/api';
 import { Home, Eye, EyeOff, Camera, User, Building } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -24,8 +25,26 @@ export default function InscriptionParticulier() {
     if (form.mot_de_passe.length < 8) { toast.error('Le mot de passe doit contenir au moins 8 caractères'); return; }
 
     setChargement(true);
+
     try {
+      // Vérifier si l'email est déjà utilisé
+      const checkEmail = await api.get(`/auth/verifier-email?email=${form.email}`);
+      if (checkEmail.data.existe) {
+        toast.error('Cet email est déjà utilisé !');
+        setChargement(false);
+        return;
+      }
+
+      // Vérifier si le téléphone est déjà utilisé
+      const checkTel = await api.get(`/auth/verifier-telephone?telephone=${form.telephone}`);
+      if (checkTel.data.existe) {
+        toast.error('Ce numéro de téléphone est déjà utilisé !');
+        setChargement(false);
+        return;
+      }
+
       await inscription({ ...form, type_compte: 'particulier' });
+
       const formData = new FormData();
       formData.append('photo', photoProfil);
       await fetch('http://localhost:3000/api/kyc/photo-profil', {
@@ -33,6 +52,7 @@ export default function InscriptionParticulier() {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData
       });
+
       toast.success('Compte créé ! Complétez votre profil.');
       router.push('/kyc');
     } catch (erreur) {
@@ -121,7 +141,7 @@ export default function InscriptionParticulier() {
             </div>
           </div>
 
-          {/* Photo de profil en dernière position */}
+          {/* Photo de profil */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Photo de profil <span className="text-red-500">*</span>
