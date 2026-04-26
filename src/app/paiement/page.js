@@ -1,14 +1,14 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
-import { CreditCard, Shield, CheckCircle, AlertCircle, Home, Phone } from 'lucide-react';
+import { CreditCard, Shield, CheckCircle, Home, Phone } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-export default function Paiement() {
+function PaiementContent() {
   const { utilisateur } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -31,7 +31,6 @@ export default function Paiement() {
       const a = response.data.annonce;
       setAnnonce(a);
 
-      // Calculer commission
       const pays = utilisateur?.pays || 'BF';
       const commResponse = await api.get(
         `/paiements/commission?prix=${a.prix}&categorie=${a.categorie}&type_transaction=${a.type_transaction}&pays=${pays}`
@@ -56,10 +55,8 @@ export default function Paiement() {
       const data = response.data;
 
       if (data.url_paiement) {
-        // Rediriger vers CinetPay ou Flutterwave
         window.location.href = data.url_paiement;
       } else {
-        // Mode test — simuler paiement réussi
         toast.success('Paiement initié en mode test !');
         setPaiementReussi(true);
       }
@@ -120,7 +117,6 @@ export default function Paiement() {
 
         <div className="grid grid-cols-1 gap-6">
 
-          {/* Détails annonce */}
           {annonce && (
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Détails de l&apos;annonce</h2>
@@ -147,11 +143,9 @@ export default function Paiement() {
             </div>
           )}
 
-          {/* Détails commission */}
           {commission && (
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Récapitulatif du paiement</h2>
-
               <div className="space-y-3">
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
                   <span className="text-gray-600">Montant total</span>
@@ -160,10 +154,7 @@ export default function Paiement() {
                   </span>
                 </div>
                 <div className="flex justify-between items-center py-2 border-b border-gray-100">
-                  <span className="text-gray-600">
-                    Commission Maison+
-                    <span className="text-xs text-gray-400 ml-1">({commission.taux_commission || commission.taux})</span>
-                  </span>
+                  <span className="text-gray-600">Commission Maison+</span>
                   <span className="text-orange-500 font-medium">
                     -{formaterPrix(commission.commission)} {commission.devise}
                   </span>
@@ -175,58 +166,54 @@ export default function Paiement() {
                   </span>
                 </div>
               </div>
-
               <div className="mt-4 bg-blue-50 rounded-xl p-3 flex items-center gap-2">
                 <Shield size={16} className="text-blue-600 flex-shrink-0" />
                 <p className="text-blue-700 text-xs">
-                  Paiement sécurisé via {commission.zone <= 2 ? 'CinetPay' : 'Flutterwave'} — 
-                  Zone {commission.zone} — {commission.systeme}
+                  Paiement sécurisé via {commission.zone <= 2 ? 'CinetPay' : 'Flutterwave'}
                 </p>
               </div>
             </div>
           )}
 
-          {/* Modes de paiement */}
-          <div className="bg-white rounded-2xl shadow-sm p-6">
-            <h2 className="text-lg font-bold text-gray-800 mb-4">Mode de paiement</h2>
+          {commission && (
+            <div className="bg-white rounded-2xl shadow-sm p-6">
+              <h2 className="text-lg font-bold text-gray-800 mb-4">Mode de paiement</h2>
+              {commission?.zone <= 2 ? (
+                <div className="space-y-3">
+                  {[
+                    { nom: 'Orange Money', icone: '📱' },
+                    { nom: 'Moov Money', icone: '📱' },
+                    { nom: 'Coris Money', icone: '📱' },
+                    { nom: 'MobiCash', icone: '📱' },
+                    { nom: 'Carte Visa/Mastercard', icone: '💳' },
+                  ].map((mode) => (
+                    <div key={mode.nom}
+                      className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-blue-200 transition">
+                      <span className="text-xl">{mode.icone}</span>
+                      <span className="text-gray-700 font-medium">{mode.nom}</span>
+                      <span className="ml-auto text-xs text-gray-400">via CinetPay</span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {[
+                    { nom: 'Carte Visa/Mastercard', icone: '💳' },
+                    { nom: 'PayPal', icone: '🅿️' },
+                    { nom: 'MTN Mobile Money', icone: '📱' },
+                  ].map((mode) => (
+                    <div key={mode.nom}
+                      className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-blue-200 transition">
+                      <span className="text-xl">{mode.icone}</span>
+                      <span className="text-gray-700 font-medium">{mode.nom}</span>
+                      <span className="ml-auto text-xs text-gray-400">via Flutterwave</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-            {commission?.zone <= 2 ? (
-              <div className="space-y-3">
-                {[
-                  { nom: 'Orange Money', couleur: 'bg-orange-500', icone: '📱' },
-                  { nom: 'Moov Money', couleur: 'bg-blue-500', icone: '📱' },
-                  { nom: 'Coris Money', couleur: 'bg-green-500', icone: '📱' },
-                  { nom: 'MobiCash', couleur: 'bg-purple-500', icone: '📱' },
-                  { nom: 'Carte Visa/Mastercard', couleur: 'bg-gray-700', icone: '💳' },
-                ].map((mode) => (
-                  <div key={mode.nom}
-                    className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-blue-200 transition">
-                    <span className="text-xl">{mode.icone}</span>
-                    <span className="text-gray-700 font-medium">{mode.nom}</span>
-                    <span className="ml-auto text-xs text-gray-400">via CinetPay</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {[
-                  { nom: 'Carte Visa/Mastercard', icone: '💳' },
-                  { nom: 'PayPal', icone: '🅿️' },
-                  { nom: 'MTN Mobile Money', icone: '📱' },
-                  { nom: 'Vodafone Cash', icone: '📱' },
-                ].map((mode) => (
-                  <div key={mode.nom}
-                    className="flex items-center gap-3 p-3 border border-gray-100 rounded-xl hover:border-blue-200 transition">
-                    <span className="text-xl">{mode.icone}</span>
-                    <span className="text-gray-700 font-medium">{mode.nom}</span>
-                    <span className="ml-auto text-xs text-gray-400">via Flutterwave</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Bouton payer */}
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <button onClick={lancerPaiement} disabled={paiementEnCours}
               className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-3">
@@ -242,7 +229,6 @@ export default function Paiement() {
                 </>
               )}
             </button>
-
             <div className="flex items-center justify-center gap-2 mt-4 text-gray-400 text-sm">
               <Shield size={14} />
               <span>Paiement 100% sécurisé et crypté</span>
@@ -251,5 +237,17 @@ export default function Paiement() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Paiement() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    }>
+      <PaiementContent />
+    </Suspense>
   );
 }
