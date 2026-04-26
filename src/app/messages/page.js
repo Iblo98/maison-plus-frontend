@@ -4,7 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../lib/api';
-import { Send, ArrowLeft, Home, Search, Check, CheckCheck } from 'lucide-react';
+import { Send, ArrowLeft, Home, Search, Check, CheckCheck, Download } from 'lucide-react';
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
 
@@ -55,7 +55,6 @@ export default function Messages() {
         if (prev.find(m => m.id === message.id)) return prev;
         return [...prev, message];
       });
-      // Marquer comme lu automatiquement si conversation ouverte
       chargerConversations();
     });
     nouveauSocket.on('notification_message', () => {
@@ -117,7 +116,6 @@ export default function Messages() {
     try {
       const response = await api.get(`/messages/${conv.annonce_id}/${autreId}`);
       setMessages(response.data.messages || []);
-      // Mettre à jour les conversations pour effacer le badge non lu
       chargerConversations();
     } catch (erreur) {
       console.error('Erreur:', erreur);
@@ -158,9 +156,7 @@ export default function Messages() {
     } catch (erreur) {
       const message = erreur?.response?.data?.message || 'Erreur envoi message';
       const raisons = erreur?.response?.data?.raisons;
-
       toast.error(message, { duration: 5000 });
-
       if (raisons && raisons.length > 0) {
         setTimeout(() => {
           toast('⚠️ ' + raisons[0], {
@@ -175,15 +171,38 @@ export default function Messages() {
     }
   };
 
+  const exporterConversation = async () => {
+    if (!conversationActive) return;
+    const autreId = conversationActive.autre_utilisateur_id ||
+      (conversationActive.expediteur_id === utilisateur.id
+        ? conversationActive.destinataire_id
+        : conversationActive.expediteur_id);
+
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/messages/exporter/${conversationActive.annonce_id}/${autreId}`,
+        { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `conversation_${conversationActive.annonce_id}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Conversation exportée !');
+    } catch (err) {
+      toast.error('Erreur export');
+    }
+  };
+
   const scrollBasDePage = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const formaterHeure = (date) => {
-    return new Date(date).toLocaleTimeString('fr-FR', {
-      hour: '2-digit', minute: '2-digit'
-    });
-  };
+  const formaterHeure = (date) => new Date(date).toLocaleTimeString('fr-FR', {
+    hour: '2-digit', minute: '2-digit'
+  });
 
   const formaterDate = (date) => {
     const d = new Date(date);
@@ -219,20 +238,14 @@ export default function Messages() {
   };
 
   const Avatar = ({ nom, prenom, photo, taille = 'md' }) => {
-    const classes = taille === 'sm'
-      ? 'w-8 h-8 text-xs'
-      : taille === 'lg'
-      ? 'w-12 h-12 text-base'
-      : 'w-10 h-10 text-sm';
-
+    const classes = taille === 'sm' ? 'w-8 h-8 text-xs' :
+      taille === 'lg' ? 'w-12 h-12 text-base' : 'w-10 h-10 text-sm';
     return (
       <div className={`${classes} rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden`}>
         {photo ? (
           <img src={photo} alt="" className="w-full h-full object-cover" />
         ) : (
-          <span className="text-blue-600 font-bold">
-            {prenom?.[0]}{nom?.[0]}
-          </span>
+          <span className="text-blue-600 font-bold">{prenom?.[0]}{nom?.[0]}</span>
         )}
       </div>
     );
@@ -341,7 +354,7 @@ export default function Messages() {
                       prenom={autreUtilisateur?.prenom || conversationActive.autre_utilisateur_prenom}
                       photo={autreUtilisateur?.photo || conversationActive.autre_utilisateur_photo}
                     />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-semibold text-gray-800 text-sm">
                         {autreUtilisateur?.prenom || conversationActive.autre_utilisateur_prenom}{' '}
                         {autreUtilisateur?.nom || conversationActive.autre_utilisateur_nom}
@@ -350,6 +363,13 @@ export default function Messages() {
                         {conversationActive.annonce_titre}
                       </p>
                     </div>
+
+                    {/* Bouton export PDF */}
+                    <button onClick={exporterConversation}
+                      className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-blue-100 transition">
+                      <Download size={14} />
+                      Exporter
+                    </button>
                   </div>
 
                   {/* Messages */}
@@ -367,8 +387,6 @@ export default function Messages() {
 
                         return (
                           <div key={index} className={`flex items-end gap-2 ${estMoi ? 'justify-end' : 'justify-start'}`}>
-
-                            {/* Avatar gauche (autre) */}
                             {!estMoi && (
                               <div className="w-7 h-7 rounded-full bg-blue-100 flex-shrink-0 overflow-hidden flex items-center justify-center">
                                 {photoExp ? (
@@ -380,8 +398,6 @@ export default function Messages() {
                                 )}
                               </div>
                             )}
-
-                            {/* Bulle message */}
                             <div className={`max-w-xs lg:max-w-md ${estMoi ? 'items-end' : 'items-start'} flex flex-col`}>
                               <div className={`px-4 py-2.5 rounded-2xl ${
                                 estMoi
@@ -391,9 +407,7 @@ export default function Messages() {
                                 <p className="text-sm leading-relaxed">{msg.contenu}</p>
                               </div>
                               <div className={`flex items-center gap-1 mt-1 ${estMoi ? 'justify-end' : 'justify-start'}`}>
-                                <span className="text-xs text-gray-400">
-                                  {formaterHeure(msg.created_at)}
-                                </span>
+                                <span className="text-xs text-gray-400">{formaterHeure(msg.created_at)}</span>
                                 {estMoi && (
                                   msg.est_lu
                                     ? <CheckCheck size={12} className="text-blue-500" />
@@ -401,8 +415,6 @@ export default function Messages() {
                                 )}
                               </div>
                             </div>
-
-                            {/* Avatar droite (moi) */}
                             {estMoi && (
                               <div className="w-7 h-7 rounded-full bg-blue-600 flex-shrink-0 overflow-hidden flex items-center justify-center">
                                 {utilisateur?.photo_profil ? (
@@ -424,15 +436,12 @@ export default function Messages() {
                   {/* Zone de saisie */}
                   <form onSubmit={envoyerMessage}
                     className="p-4 border-t border-gray-100 flex gap-3 bg-white">
-                    <input
-                      type="text"
-                      value={nouveauMessage}
+                    <input type="text" value={nouveauMessage}
                       onChange={(e) => setNouveauMessage(e.target.value)}
                       placeholder="Écrivez votre message..."
                       className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 outline-none focus:border-blue-500 transition text-sm"
                     />
-                    <button type="submit"
-                      disabled={!nouveauMessage.trim() || envoi}
+                    <button type="submit" disabled={!nouveauMessage.trim() || envoi}
                       className="bg-blue-600 text-white p-2.5 rounded-xl hover:bg-blue-700 transition disabled:opacity-50">
                       <Send size={18} />
                     </button>
