@@ -9,6 +9,7 @@ import { useLangue } from '../../../context/LangueContext';
 import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image, FileText, Download } from 'lucide-react';
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
+import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite';
 
 export default function DetailAnnonce() {
   const { id } = useParams();
@@ -292,6 +293,15 @@ export default function DetailAnnonce() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {/* Calendrier disponibilité */}
+            {(annonce.type_transaction === 'location' ||
+              annonce.categorie === 'hotel') && (
+              <CalendrierDisponibilite
+                annonceId={annonce.id}
+                estProprietaire={utilisateur?.id === annonce.utilisateur_id}
+              />
             )}
           </div>
 
