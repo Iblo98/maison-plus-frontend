@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
@@ -8,7 +8,7 @@ import { Send, ArrowLeft, Home, Search, Check, CheckCheck, Download } from 'luci
 import toast from 'react-hot-toast';
 import io from 'socket.io-client';
 
-export default function Messages() {
+function MessagesContent() {
   const { utilisateur, chargement: authChargement } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -363,8 +363,6 @@ export default function Messages() {
                         {conversationActive.annonce_titre}
                       </p>
                     </div>
-
-                    {/* Bouton export PDF */}
                     <button onClick={exporterConversation}
                       className="flex items-center gap-1.5 bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-sm font-medium hover:bg-blue-100 transition">
                       <Download size={14} />
@@ -453,5 +451,17 @@ export default function Messages() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function Messages() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    }>
+      <MessagesContent />
+    </Suspense>
   );
 }
