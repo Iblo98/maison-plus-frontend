@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Home, CheckCircle, XCircle } from 'lucide-react';
 import api from '../../lib/api';
 
-export default function VerifierEmail() {
+function VerifierEmailContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [statut, setStatut] = useState('chargement');
@@ -71,5 +71,17 @@ export default function VerifierEmail() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function VerifierEmail() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    }>
+      <VerifierEmailContent />
+    </Suspense>
   );
 }
