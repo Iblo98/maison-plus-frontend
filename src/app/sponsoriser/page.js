@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Navbar from '../../components/Navbar';
 import { useAuth } from '../../context/AuthContext';
@@ -8,7 +8,7 @@ import { Star, Zap, Crown, CheckCircle, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 
-export default function Sponsoriser() {
+function SponsoriserContent() {
   const { utilisateur } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -84,18 +84,13 @@ export default function Sponsoriser() {
   ];
 
   const lancerSponsorisation = async () => {
-    if (!planChoisi) {
-      toast.error('Choisissez un plan');
-      return;
-    }
+    if (!planChoisi) { toast.error('Choisissez un plan'); return; }
     setChargement(true);
     try {
-      // En mode test — activer directement
       await api.post('/sponsorisations/activer-manuel', {
         annonce_id: annonceId,
         duree_jours: plans.find(p => p.id === planChoisi)?.duree.split(' ')[0]
       });
-
       toast.success('Annonce sponsorisée avec succès !');
       setSucces(true);
     } catch (erreur) {
@@ -112,9 +107,7 @@ export default function Sponsoriser() {
         <div className="max-w-md mx-auto px-4 py-16 text-center">
           <div className="bg-white rounded-2xl shadow-sm p-8">
             <CheckCircle size={64} className="text-green-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-gray-800 mb-2">
-              Annonce sponsorisée ! 🎉
-            </h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">Annonce sponsorisée ! 🎉</h1>
             <p className="text-gray-500 mb-6">
               Votre annonce apparaîtra en tête des résultats et aura plus de visibilité.
             </p>
@@ -137,10 +130,7 @@ export default function Sponsoriser() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
-
       <div className="max-w-4xl mx-auto px-4 py-8">
-
-        {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
             <ArrowLeft size={20} />
@@ -153,48 +143,35 @@ export default function Sponsoriser() {
           </div>
         </div>
 
-        {/* Plans */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           {plans.map((plan) => {
             const Icon = plan.icon;
             const estChoisi = planChoisi === plan.id;
             return (
-              <div key={plan.id}
-                onClick={() => setPlanChoisi(plan.id)}
+              <div key={plan.id} onClick={() => setPlanChoisi(plan.id)}
                 className={`relative bg-white rounded-2xl p-6 shadow-sm cursor-pointer transition-all ${
-                  estChoisi
-                    ? 'ring-2 ring-blue-600 shadow-lg scale-105'
-                    : 'hover:shadow-md hover:scale-102'
+                  estChoisi ? 'ring-2 ring-blue-600 shadow-lg scale-105' : 'hover:shadow-md'
                 }`}>
-
-                {/* Badge populaire */}
                 {plan.populaire && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-purple-600 text-white text-xs font-bold px-3 py-1 rounded-full">
                     ⭐ Populaire
                   </div>
                 )}
-
-                {/* Icône */}
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${
                   plan.couleur === 'blue' ? 'bg-blue-100' :
-                  plan.couleur === 'purple' ? 'bg-purple-100' :
-                  'bg-yellow-100'
+                  plan.couleur === 'purple' ? 'bg-purple-100' : 'bg-yellow-100'
                 }`}>
                   <Icon size={24} className={
                     plan.couleur === 'blue' ? 'text-blue-600' :
-                    plan.couleur === 'purple' ? 'text-purple-600' :
-                    'text-yellow-600'
+                    plan.couleur === 'purple' ? 'text-purple-600' : 'text-yellow-600'
                   } />
                 </div>
-
                 <h3 className="text-xl font-bold text-gray-800 mb-1">{plan.nom}</h3>
                 <p className="text-gray-400 text-sm mb-3">{plan.duree}</p>
-
                 <p className="text-3xl font-black text-gray-800 mb-4">
                   {plan.prix.toLocaleString('fr-FR')}
                   <span className="text-base font-normal text-gray-400"> XOF</span>
                 </p>
-
                 <div className="space-y-2">
                   {plan.avantages.map((avantage, index) => (
                     <div key={index} className="flex items-start gap-2">
@@ -203,7 +180,6 @@ export default function Sponsoriser() {
                     </div>
                   ))}
                 </div>
-
                 {estChoisi && (
                   <div className="mt-4 bg-blue-50 rounded-xl p-2 text-center text-blue-600 text-sm font-medium">
                     ✓ Plan sélectionné
@@ -214,7 +190,6 @@ export default function Sponsoriser() {
           })}
         </div>
 
-        {/* Bouton payer */}
         {planChoisi && (
           <div className="bg-white rounded-2xl shadow-sm p-6">
             <div className="flex items-center justify-between mb-4">
@@ -230,7 +205,6 @@ export default function Sponsoriser() {
                 {plans.find(p => p.id === planChoisi)?.prix.toLocaleString('fr-FR')} XOF
               </p>
             </div>
-
             <button onClick={lancerSponsorisation} disabled={chargement}
               className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition disabled:opacity-50 flex items-center justify-center gap-2">
               {chargement ? (
@@ -245,7 +219,6 @@ export default function Sponsoriser() {
                 </>
               )}
             </button>
-
             <p className="text-center text-gray-400 text-xs mt-3">
               Mode test — la sponsorisation est activée gratuitement pour les tests
             </p>
@@ -253,5 +226,17 @@ export default function Sponsoriser() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function Sponsoriser() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    }>
+      <SponsoriserContent />
+    </Suspense>
   );
 }
