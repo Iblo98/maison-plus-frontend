@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useLangue } from '../context/LangueContext';
-import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield, Heart, Bell, BellRing } from 'lucide-react';
+import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield, Heart, Bell, BellRing, Search } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 import Notifications from './Notifications';
@@ -48,6 +48,10 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-6">
             <Link href="/annonces" className="text-gray-600 hover:text-blue-600 font-medium transition">
               {t('nav.annonces')}
+            </Link>
+            <Link href="/recherche" className="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+              <Search size={15} />
+              Recherche avancée
             </Link>
             <Link href="/annonces?categorie=maison" className="text-gray-600 hover:text-blue-600 font-medium transition">
               {t('nav.maisons')}
@@ -141,6 +145,10 @@ export default function Navbar() {
         {menuOuvert && (
           <div className="md:hidden py-4 border-t flex flex-col gap-3">
             <Link href="/annonces" className="text-gray-600 font-medium py-2">{t('nav.annonces')}</Link>
+            <Link href="/recherche" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+              <Search size={16} className="text-blue-600" />
+              Recherche avancée
+            </Link>
             <Link href="/annonces?categorie=maison" className="text-gray-600 font-medium py-2">{t('nav.maisons')}</Link>
             <Link href="/annonces?categorie=marketplace" className="text-gray-600 font-medium py-2">{t('nav.marketplace')}</Link>
             <Link href="/annonces?categorie=restaurant" className="text-gray-600 font-medium py-2">{t('nav.restaurants')}</Link>
@@ -173,7 +181,6 @@ export default function Navbar() {
                   <Heart size={16} className="text-red-500" />
                   Mes favoris
                 </Link>
-
                 <Link href="/alertes" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   <BellRing size={16} className="text-blue-600" />
                   Mes alertes
