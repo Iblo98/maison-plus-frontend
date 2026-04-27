@@ -129,6 +129,37 @@ export default function Accueil() {
         </div>
       </div>
 
+      {/* Bannière Estimation IA */}
+      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-4">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">🧠</span>
+          <div>
+            <p className="font-bold">Estimation de prix IA</p>
+            <p className="text-purple-100 text-sm">Découvrez le juste prix de votre bien en quelques secondes</p>
+          </div>
+        </div>
+        <Link href="/estimation"
+          className="bg-white text-purple-600 px-4 py-2 rounded-xl font-medium hover:bg-purple-50 transition flex-shrink-0">
+          Estimer maintenant →
+        </Link>
+      </div>
+    </div>
+          <div>
+            <p className="text-2xl font-bold text-blue-600">100%</p>
+            <p className="text-gray-500 text-sm">{t('accueil.annonces_verifiees')}</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-green-500">{t('accueil.gratuit')}</p>
+            <p className="text-gray-500 text-sm">{t('accueil.pour_commencer')}</p>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-blue-600">{t('accueil.securise')}</p>
+            <p className="text-gray-500 text-sm">{t('accueil.paiements_proteges')}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Categories */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex gap-3 overflow-x-auto pb-2">

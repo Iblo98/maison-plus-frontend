@@ -195,6 +195,11 @@ export default function Navbar() {
                   <span>🎁</span>
                   Parrainage
                 </Link>
+
+                <Link href="/estimation" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>🧠</span>
+                  Estimation IA
+                </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
                 <Link href="/parametres" className="text-gray-600 font-medium py-2">{t('nav.parametres')}</Link>
                 <button onClick={deconnexion} className="text-red-500 font-medium py-2 text-left">{t('nav.deconnexion')}</button>
