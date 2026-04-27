@@ -91,6 +91,11 @@ export default function Navbar() {
                   {t('nav.publier')}
                 </Link>
 
+                <Link href="/parrainage"
+                  className="flex items-center gap-1.5 border border-yellow-400 text-yellow-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-50 transition">
+                  🎁 Parrainage
+                </Link>
+
                 <Link href="/messages" className="relative text-gray-600 hover:text-blue-600 transition">
                   <MessageCircle size={24} />
                   {nonLus > 0 && (
@@ -184,6 +189,11 @@ export default function Navbar() {
                 <Link href="/alertes" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   <BellRing size={16} className="text-blue-600" />
                   Mes alertes
+                </Link>
+
+                <Link href="/parrainage" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>🎁</span>
+                  Parrainage
                 </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
                 <Link href="/parametres" className="text-gray-600 font-medium py-2">{t('nav.parametres')}</Link>
