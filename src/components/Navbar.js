@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useLangue } from '../context/LangueContext';
-import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield, Heart, Bell } from 'lucide-react';
+import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield, Heart, Bell, BellRing } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 import Notifications from './Notifications';
@@ -102,8 +102,8 @@ export default function Navbar() {
                 </Link>
 
                 {/* Alertes */}
-                <Link href="/alertes" className="text-gray-600 hover:text-blue-600 transition">
-                  <Bell size={24} />
+                <Link href="/alertes" className="text-gray-600 hover:text-blue-600 transition" title="Mes alertes">
+                  <BellRing size={24} />
                 </Link>
 
                 <Notifications />
@@ -175,7 +175,7 @@ export default function Navbar() {
                 </Link>
 
                 <Link href="/alertes" className="text-gray-600 font-medium py-2 flex items-center gap-2">
-                  <Bell size={16} className="text-blue-600" />
+                  <BellRing size={16} className="text-blue-600" />
                   Mes alertes
                 </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
