@@ -53,6 +53,10 @@ export default function Navbar() {
               <Search size={15} />
               Recherche avancée
             </Link>
+
+            <Link href="/marche" className="text-gray-600 hover:text-blue-600 font-medium transition flex items-center gap-1">
+              📊 Marché
+            </Link>
             <Link href="/annonces?categorie=maison" className="text-gray-600 hover:text-blue-600 font-medium transition">
               {t('nav.maisons')}
             </Link>
@@ -209,6 +213,11 @@ export default function Navbar() {
                 <Link href="/estimation" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   <span>🧠</span>
                   Estimation IA
+                </Link>
+
+                <Link href="/marche" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>📊</span>
+                  Rapport de marché
                 </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
                 <Link href="/parametres" className="text-gray-600 font-medium py-2">{t('nav.parametres')}</Link>
