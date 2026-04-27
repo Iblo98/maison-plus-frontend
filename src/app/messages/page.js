@@ -46,7 +46,7 @@ function MessagesContent() {
   }, [messages]);
 
   const initialiserSocket = () => {
-    const nouveauSocket = io('http://localhost:3000');
+    const nouveauSocket = io('https://maison-plus-backend.onrender.com');
     nouveauSocket.on('connect', () => {
       nouveauSocket.emit('rejoindre', utilisateur.id);
     });
@@ -180,7 +180,7 @@ function MessagesContent() {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/api/messages/exporter/${conversationActive.annonce_id}/${autreId}`,
+        `https://maison-plus-backend.onrender.com/api/messages/exporter/${conversationActive.annonce_id}/${autreId}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       const blob = await response.blob();

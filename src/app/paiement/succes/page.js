@@ -23,7 +23,7 @@ function PaiementSuccesContent() {
     setChargement(true);
     try {
       const response = await fetch(
-        `http://localhost:3000/api/paiements/recu/${reference}`,
+        `https://maison-plus-backend.onrender.com/api/paiements/recu/${reference}`,
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
       if (!response.ok) { toast.error('Erreur téléchargement reçu'); return; }

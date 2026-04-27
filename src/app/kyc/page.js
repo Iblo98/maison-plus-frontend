@@ -56,7 +56,7 @@ export default function KYC() {
     try {
       const formData = new FormData();
       formData.append('photo', photoProfil);
-      const response = await fetch('http://localhost:3000/api/kyc/photo-profil', {
+      const response = await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -88,7 +88,7 @@ export default function KYC() {
       const formData = new FormData();
       formData.append('recto', cnibRecto);
       formData.append('verso', cnibVerso);
-      const response = await fetch('http://localhost:3000/api/kyc/cnib', {
+      const response = await fetch('https://maison-plus-backend.onrender.com/api/kyc/cnib', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`

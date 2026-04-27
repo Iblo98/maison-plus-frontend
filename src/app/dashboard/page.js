@@ -67,7 +67,7 @@ export default function Dashboard() {
     try {
       const formData = new FormData();
       formData.append('photo', blob, 'photo.jpg');
-      const response = await fetch(`http://localhost:3000/api/kyc/${endpoint}`, {
+      const response = await fetch(`https://maison-plus-backend.onrender.com/api/kyc/${endpoint}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

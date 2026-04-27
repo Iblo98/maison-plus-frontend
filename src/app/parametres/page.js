@@ -82,7 +82,7 @@ export default function Parametres() {
     try {
       const formData = new FormData();
       formData.append('photo', photoProfil);
-      const response = await fetch('http://localhost:3000/api/kyc/photo-profil', {
+      const response = await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData
@@ -107,7 +107,7 @@ export default function Parametres() {
     try {
       const formData = new FormData();
       formData.append('photo', photoCouverture);
-      const response = await fetch('http://localhost:3000/api/kyc/photo-couverture', {
+      const response = await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-couverture', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

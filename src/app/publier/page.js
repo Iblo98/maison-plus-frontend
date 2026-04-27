@@ -117,7 +117,7 @@ export default function Publier() {
       // Upload photos
       const formDataPhotos = new FormData();
       photos.forEach(photo => formDataPhotos.append('photos', photo));
-      const photoRes = await fetch(`http://localhost:3000/api/medias/${annonceId}/photos`, {
+      const photoRes = await fetch(`https://maison-plus-backend.onrender.com/api/medias/${annonceId}/photos`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formDataPhotos
@@ -133,7 +133,7 @@ export default function Publier() {
       if (videos.length > 0) {
         const formDataVideos = new FormData();
         videos.forEach(video => formDataVideos.append('videos', video));
-        await fetch(`http://localhost:3000/api/medias/${annonceId}/videos`, {
+        await fetch(`https://maison-plus-backend.onrender.com/api/medias/${annonceId}/videos`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formDataVideos
@@ -148,7 +148,7 @@ export default function Publier() {
           formDoc.append('annonce_id', annonceId);
           formDoc.append('type_document', doc.type);
           formDoc.append('nom', doc.nom);
-          await fetch('http://localhost:3000/api/documents/upload', {
+          await fetch('https://maison-plus-backend.onrender.com/api/documents/upload', {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
             body: formDoc

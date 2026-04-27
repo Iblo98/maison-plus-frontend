@@ -47,7 +47,7 @@ export default function InscriptionParticulier() {
 
       const formData = new FormData();
       formData.append('photo', photoProfil);
-      await fetch('http://localhost:3000/api/kyc/photo-profil', {
+      await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
         method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
         body: formData

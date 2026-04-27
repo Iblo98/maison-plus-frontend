@@ -33,7 +33,7 @@ export default function Notifications() {
   }, []);
 
   const initialiserSocket = () => {
-    const s = io('http://localhost:3000');
+    const s = io('https://maison-plus-backend.onrender.com');
     s.on('connect', () => s.emit('rejoindre', utilisateur.id));
     s.on('nouvelle_notification', (notif) => {
       setNotifications(prev => [{
