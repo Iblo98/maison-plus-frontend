@@ -11,6 +11,8 @@ import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite';
 import BoutonPartage from '../../../components/BoutonPartage';
+import BadgesUtilisateur from '../../../components/BadgesUtilisateur';
+
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
@@ -225,24 +227,24 @@ export default function DetailAnnonce() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Titre et prix */}
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <div className="flex items-start justify-between mb-2">
-              <h1 className="text-2xl font-bold text-gray-800 flex-1">{annonce.titre}</h1>
-              <BoutonPartage annonce={annonce} />
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <div className="flex items-start justify-between mb-2">
+                <h1 className="text-2xl font-bold text-gray-800 flex-1">{annonce.titre}</h1>
+                <BoutonPartage annonce={annonce} />
+              </div>
+              <div className="flex items-center gap-2 text-gray-500 mb-4">
+                <MapPin size={16} />
+                <span>{annonce.quartier}, {annonce.ville}</span>
+              </div>
+              <div className="flex items-end gap-3">
+                <PrixDevise prix={annonce.prix} className="text-3xl" />
+                {annonce.type_transaction === 'location' && (
+                  <span className="text-base text-gray-400 font-normal mb-1">
+                    /{annonce.periode || 'mois'}
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-gray-500 mb-4">
-              <MapPin size={16} />
-              <span>{annonce.quartier}, {annonce.ville}</span>
-            </div>
-            <div className="flex items-end gap-3">
-              <PrixDevise prix={annonce.prix} className="text-3xl" />
-              {annonce.type_transaction === 'location' && (
-                <span className="text-base text-gray-400 font-normal mb-1">
-                /{annonce.periode || 'mois'}
-              </span>
-            )}
-          </div>
-        </div>
 
             {/* Caractéristiques */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
@@ -343,7 +345,7 @@ export default function DetailAnnonce() {
             <div className="bg-white rounded-2xl p-6 shadow-sm">
               <h2 className="text-lg font-bold text-gray-800 mb-4">{t('annonce.proprietaire')}</h2>
               <Link href={`/profil/${annonce.utilisateur_id}`}>
-                <div className="flex items-center gap-3 mb-4 hover:opacity-80 transition">
+                <div className="flex items-center gap-3 mb-3 hover:opacity-80 transition">
                   <div className="w-12 h-12 bg-blue-100 rounded-full overflow-hidden flex items-center justify-center">
                     {annonce.photo_profil ? (
                       <img src={annonce.photo_profil} alt="Profil"
@@ -367,6 +369,14 @@ export default function DetailAnnonce() {
                   </div>
                 </div>
               </Link>
+
+              {/* Badges propriétaire */}
+              <div className="mb-4">
+                <BadgesUtilisateur
+                  utilisateurId={annonce.utilisateur_id}
+                  afficherScore={false}
+                />
+              </div>
 
               <div className="space-y-3">
                 {utilisateur && utilisateur.id !== annonce.utilisateur_id && (
