@@ -7,14 +7,15 @@ const getToken = () => {
   return null;
 };
 
+const headers = () => ({
+  'Content-Type': 'application/json',
+  'ngrok-skip-browser-warning': 'true',
+  ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
+});
+
 const api = {
   get: async (url) => {
-    const response = await fetch(`${API_URL}${url}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
-      },
-    });
+    const response = await fetch(`${API_URL}${url}`, { headers: headers() });
     const data = await response.json();
     if (!response.ok) throw { response: { data, status: response.status } };
     return { data };
@@ -23,10 +24,7 @@ const api = {
   post: async (url, body) => {
     const response = await fetch(`${API_URL}${url}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
-      },
+      headers: headers(),
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -37,10 +35,7 @@ const api = {
   put: async (url, body) => {
     const response = await fetch(`${API_URL}${url}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
-      },
+      headers: headers(),
       body: JSON.stringify(body),
     });
     const data = await response.json();
@@ -51,10 +46,7 @@ const api = {
   delete: async (url) => {
     const response = await fetch(`${API_URL}${url}`, {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
-      },
+      headers: headers(),
     });
     const data = await response.json();
     if (!response.ok) throw { response: { data, status: response.status } };
