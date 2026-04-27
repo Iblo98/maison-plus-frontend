@@ -96,6 +96,11 @@ export default function Navbar() {
                   🎁 Parrainage
                 </Link>
 
+                <Link href="/premium"
+                  className="flex items-center gap-1.5 border border-yellow-400 text-yellow-600 px-3 py-1.5 rounded-lg text-sm font-medium hover:bg-yellow-50 transition">
+                  👑 Premium
+                </Link>
+
                 <Link href="/messages" className="relative text-gray-600 hover:text-blue-600 transition">
                   <MessageCircle size={24} />
                   {nonLus > 0 && (
@@ -194,6 +199,11 @@ export default function Navbar() {
                 <Link href="/parrainage" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   <span>🎁</span>
                   Parrainage
+                </Link>
+
+                <Link href="/premium" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>👑</span>
+                  Plans Premium
                 </Link>
 
                 <Link href="/estimation" className="text-gray-600 font-medium py-2 flex items-center gap-2">
