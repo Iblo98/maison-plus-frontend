@@ -10,7 +10,7 @@ import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, Door
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite';
-
+import BoutonPartage from '../../../components/BoutonPartage';
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
@@ -225,21 +225,24 @@ export default function DetailAnnonce() {
           <div className="lg:col-span-2 space-y-6">
 
             {/* Titre et prix */}
-            <div className="bg-white rounded-2xl p-6 shadow-sm">
-              <h1 className="text-2xl font-bold text-gray-800 mb-2">{annonce.titre}</h1>
-              <div className="flex items-center gap-2 text-gray-500 mb-4">
-                <MapPin size={16} />
-                <span>{annonce.quartier}, {annonce.ville}</span>
-              </div>
-              <div className="flex items-end gap-3">
-                <PrixDevise prix={annonce.prix} className="text-3xl" />
-                {annonce.type_transaction === 'location' && (
-                  <span className="text-base text-gray-400 font-normal mb-1">
-                    /{annonce.periode || 'mois'}
-                  </span>
-                )}
-              </div>
+          <div className="bg-white rounded-2xl p-6 shadow-sm">
+            <div className="flex items-start justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-800 flex-1">{annonce.titre}</h1>
+              <BoutonPartage annonce={annonce} />
             </div>
+            <div className="flex items-center gap-2 text-gray-500 mb-4">
+              <MapPin size={16} />
+              <span>{annonce.quartier}, {annonce.ville}</span>
+            </div>
+            <div className="flex items-end gap-3">
+              <PrixDevise prix={annonce.prix} className="text-3xl" />
+              {annonce.type_transaction === 'location' && (
+                <span className="text-base text-gray-400 font-normal mb-1">
+                /{annonce.periode || 'mois'}
+              </span>
+            )}
+          </div>
+        </div>
 
             {/* Caractéristiques */}
             <div className="bg-white rounded-2xl p-6 shadow-sm">
