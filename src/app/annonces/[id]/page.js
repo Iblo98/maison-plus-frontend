@@ -6,7 +6,7 @@ import Navbar from '../../../components/Navbar';
 import api from '../../../lib/api';
 import { useAuth } from '../../../context/AuthContext';
 import { useLangue } from '../../../context/LangueContext';
-import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image, FileText, Download } from 'lucide-react';
+import { MapPin, Home, Eye, Phone, MessageCircle, Shield, Calendar, Square, DoorOpen, CreditCard, ChevronLeft, ChevronRight, X, Play, Image, FileText, Download, Heart } from 'lucide-react';
 import PrixDevise from '../../../components/PrixDevise';
 import toast from 'react-hot-toast';
 import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite';
@@ -22,10 +22,15 @@ export default function DetailAnnonce() {
   const [photoActive, setPhotoActive] = useState(0);
   const [lightboxOuvert, setLightboxOuvert] = useState(false);
   const [ongletMedia, setOngletMedia] = useState('photos');
+  const [estFavori, setEstFavori] = useState(false);
 
   useEffect(() => {
     if (id) chargerAnnonce();
   }, [id]);
+
+  useEffect(() => {
+    if (utilisateur && id) verifierFavori();
+  }, [utilisateur, id]);
 
   const chargerAnnonce = async () => {
     try {
@@ -41,6 +46,29 @@ export default function DetailAnnonce() {
       toast.error(t('errors.annonce_introuvable'));
     } finally {
       setChargement(false);
+    }
+  };
+
+  const verifierFavori = async () => {
+    try {
+      const response = await api.get(`/favoris/verifier/${id}`);
+      setEstFavori(response.data.favori);
+    } catch (err) {
+      console.error('Erreur vérification favori:', err);
+    }
+  };
+
+  const toggleFavori = async () => {
+    if (!utilisateur) {
+      toast.error('Connectez-vous pour ajouter aux favoris');
+      return;
+    }
+    try {
+      const response = await api.post('/favoris/toggle', { annonce_id: id });
+      setEstFavori(response.data.favori);
+      toast.success(response.data.favori ? 'Ajouté aux favoris ❤️' : 'Retiré des favoris');
+    } catch (err) {
+      toast.error('Erreur');
     }
   };
 
@@ -345,6 +373,18 @@ export default function DetailAnnonce() {
                     {t('annonce.payer')}
                   </Link>
                 )}
+
+                {/* Bouton Favori */}
+                <button onClick={toggleFavori}
+                  className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition border-2 ${
+                    estFavori
+                      ? 'bg-red-50 border-red-500 text-red-500'
+                      : 'border-gray-300 text-gray-600 hover:border-red-400 hover:text-red-400'
+                  }`}>
+                  <Heart size={18} className={estFavori ? 'fill-red-500' : ''} />
+                  {estFavori ? 'Retiré des favoris' : 'Ajouter aux favoris'}
+                </button>
+
                 <a href={`tel:${annonce.telephone}`}
                   className="w-full flex items-center justify-center gap-2 border-2 border-blue-600 text-blue-600 py-3 rounded-xl font-medium hover:bg-blue-50 transition">
                   <Phone size={18} />

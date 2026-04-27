@@ -3,20 +3,28 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '../components/Navbar';
 import api from '../lib/api';
+import { useAuth } from '../context/AuthContext';
 import { useLangue } from '../context/LangueContext';
 import { Search, MapPin, Home, Building, ShoppingBag, UtensilsCrossed, Shield, Eye, Heart, Square } from 'lucide-react';
 import PrixDevise from '../components/PrixDevise';
+import toast from 'react-hot-toast';
 
 export default function Accueil() {
   const { t } = useLangue();
+  const { utilisateur } = useAuth();
   const [annonces, setAnnonces] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [categorie, setCategorie] = useState('');
+  const [favoris, setFavoris] = useState([]);
 
   useEffect(() => {
     chargerAnnonces();
   }, [categorie]);
+
+  useEffect(() => {
+    if (utilisateur) chargerFavoris();
+  }, [utilisateur]);
 
   const chargerAnnonces = async () => {
     try {
@@ -29,6 +37,36 @@ export default function Accueil() {
       console.error('Erreur:', erreur);
     } finally {
       setChargement(false);
+    }
+  };
+
+  const chargerFavoris = async () => {
+    try {
+      const response = await api.get('/favoris/mes-favoris');
+      setFavoris((response.data.favoris || []).map(f => f.id));
+    } catch (err) {
+      console.error('Erreur favoris:', err);
+    }
+  };
+
+  const toggleFavori = async (e, annonceId) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!utilisateur) {
+      toast.error('Connectez-vous pour ajouter aux favoris');
+      return;
+    }
+    try {
+      const response = await api.post('/favoris/toggle', { annonce_id: annonceId });
+      if (response.data.favori) {
+        setFavoris(prev => [...prev, annonceId]);
+        toast.success('Ajouté aux favoris ❤️');
+      } else {
+        setFavoris(prev => prev.filter(id => id !== annonceId));
+        toast.success('Retiré des favoris');
+      }
+    } catch (err) {
+      toast.error('Erreur');
     }
   };
 
@@ -113,7 +151,16 @@ export default function Accueil() {
 
       {/* Annonces */}
       <div className="max-w-7xl mx-auto px-4 pb-12">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">{t('accueil.annonces_recentes')}</h2>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold text-gray-800">{t('accueil.annonces_recentes')}</h2>
+          {utilisateur && (
+            <Link href="/favoris"
+              className="flex items-center gap-2 text-red-500 hover:text-red-600 font-medium text-sm">
+              <Heart size={16} className="fill-red-500" />
+              Mes favoris ({favoris.length})
+            </Link>
+          )}
+        </div>
 
         {chargement ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -170,9 +217,15 @@ export default function Accueil() {
                       {annonce.nb_vues}
                     </span>
 
-                    {/* Favori */}
-                    <button className="absolute bottom-3 right-3 bg-white rounded-full p-2 shadow hover:bg-red-50 transition">
-                      <Heart size={16} className="text-gray-400 hover:text-red-500" />
+                    {/* Bouton Favori */}
+                    <button
+                      onClick={(e) => toggleFavori(e, annonce.id)}
+                      className="absolute bottom-3 right-3 bg-white rounded-full p-2 shadow hover:scale-110 transition">
+                      <Heart size={16} className={
+                        favoris.includes(annonce.id)
+                          ? 'text-red-500 fill-red-500'
+                          : 'text-gray-400'
+                      } />
                     </button>
 
                     {/* Sponsorise */}

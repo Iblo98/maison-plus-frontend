@@ -2,7 +2,7 @@
 import Link from 'next/link';
 import { useAuth } from '../context/AuthContext';
 import { useLangue } from '../context/LangueContext';
-import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield } from 'lucide-react';
+import { Home, Plus, MessageCircle, User, LogOut, Menu, X, Settings, Shield, Heart } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import api from '../lib/api';
 import Notifications from './Notifications';
@@ -96,6 +96,11 @@ export default function Navbar() {
                   )}
                 </Link>
 
+                {/* Favoris */}
+                <Link href="/favoris" className="text-gray-600 hover:text-red-500 transition">
+                  <Heart size={24} />
+                </Link>
+
                 <Notifications />
 
                 <Link href="/dashboard" className="text-gray-600 hover:text-blue-600 transition">
@@ -152,12 +157,16 @@ export default function Navbar() {
                 )}
                 <Link href="/publier" className="text-green-600 font-medium py-2">+ {t('nav.publier')}</Link>
                 <Link href="/messages" className="text-gray-600 font-medium py-2 flex items-center gap-2">
-                  {t('nav.annonces')}
+                  Messages
                   {nonLus > 0 && (
                     <span className="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 font-bold">
                       {nonLus}
                     </span>
                   )}
+                </Link>
+                <Link href="/favoris" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <Heart size={16} className="text-red-500" />
+                  Mes favoris
                 </Link>
                 <Link href="/dashboard" className="text-gray-600 font-medium py-2">{t('profil.annonces')}</Link>
                 <Link href="/parametres" className="text-gray-600 font-medium py-2">{t('nav.parametres')}</Link>
