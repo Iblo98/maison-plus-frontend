@@ -12,7 +12,7 @@ import toast from 'react-hot-toast';
 import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite';
 import BoutonPartage from '../../../components/BoutonPartage';
 import BadgesUtilisateur from '../../../components/BadgesUtilisateur';
-
+import HistoriquePrix from '../../../components/HistoriquePrix';
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
@@ -337,6 +337,9 @@ export default function DetailAnnonce() {
               />
             )}
           </div>
+
+          {/* Historique des prix */}
+          <HistoriquePrix annonceId={annonce.id} />
 
           {/* Sidebar contact */}
           <div className="space-y-4">
