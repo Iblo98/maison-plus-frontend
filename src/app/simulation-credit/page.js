@@ -1,10 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '../../components/Navbar';
-import { Calculator, TrendingDown, CheckCircle, XCircle } from 'lucide-react';
-import Link from 'next/link';
+import { Calculator, TrendingDown } from 'lucide-react';
 
-export default function SimulationCredit() {
+function SimulationCreditContent() {
+  const searchParams = useSearchParams();
   const [form, setForm] = useState({
     prix_bien: '',
     apport: '',
@@ -12,6 +13,11 @@ export default function SimulationCredit() {
     duree_ans: '20'
   });
   const [resultat, setResultat] = useState(null);
+
+  useEffect(() => {
+    const prix = searchParams.get('prix');
+    if (prix) setForm(prev => ({ ...prev, prix_bien: prix }));
+  }, []);
 
   useEffect(() => {
     if (form.prix_bien && form.duree_ans && form.taux_interet) {
@@ -66,7 +72,6 @@ export default function SimulationCredit() {
     const prix = parseFloat(form.prix_bien);
     const apport = parseFloat(form.apport) || 0;
     const taux = parseFloat(form.taux_interet) / 100 / 12;
-    const duree = parseInt(form.duree_ans) * 12;
     const montantEmprunte = prix - apport;
     const mensualite = resultat.mensualite;
 
@@ -118,28 +123,21 @@ export default function SimulationCredit() {
           <div className="space-y-6">
             <div className="bg-white rounded-2xl shadow-sm p-6">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Paramètres du crédit</h2>
-
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Prix du bien (XOF)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Prix du bien (XOF)</label>
                   <input type="number" value={form.prix_bien}
                     onChange={(e) => setForm({...form, prix_bien: e.target.value})}
                     placeholder="Ex: 50000000"
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
                   {form.prix_bien && (
-                    <p className="text-xs text-gray-400 mt-1">
-                      = {formaterPrix(parseFloat(form.prix_bien) || 0)}
-                    </p>
+                    <p className="text-xs text-gray-400 mt-1">= {formaterPrix(parseFloat(form.prix_bien) || 0)}</p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Apport personnel (XOF)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Apport personnel (XOF)</label>
                   <input type="number" value={form.apport}
                     onChange={(e) => setForm({...form, apport: e.target.value})}
                     placeholder="Ex: 10000000"
@@ -200,22 +198,16 @@ export default function SimulationCredit() {
           <div className="space-y-6">
             {resultat && form.prix_bien ? (
               <>
-                {/* Mensualité */}
                 <div className="bg-gradient-to-br from-green-500 to-green-700 text-white rounded-2xl p-6">
                   <p className="text-green-100 text-sm mb-1">Mensualité estimée</p>
                   <p className="text-4xl font-black">{formaterPrix(resultat.mensualite)}</p>
                   <p className="text-green-100 text-sm mt-1">par mois pendant {form.duree_ans} ans</p>
-
-                  {/* Indicateur budget */}
                   <div className="mt-4 bg-white bg-opacity-20 rounded-xl p-3">
                     <p className="text-sm font-medium mb-1">Revenu mensuel recommandé :</p>
-                    <p className="text-xl font-bold">
-                      {formaterPrix(resultat.mensualite * 3)} minimum
-                    </p>
+                    <p className="text-xl font-bold">{formaterPrix(resultat.mensualite * 3)} minimum</p>
                   </div>
                 </div>
 
-                {/* Récapitulatif */}
                 <div className="bg-white rounded-2xl shadow-sm p-6">
                   <h2 className="text-lg font-bold text-gray-800 mb-4">Récapitulatif</h2>
                   <div className="space-y-3">
@@ -228,7 +220,7 @@ export default function SimulationCredit() {
                     ].map((item) => (
                       <div key={item.label} className={`flex justify-between items-center py-2 ${item.bold ? 'border-t border-gray-100 pt-3' : ''}`}>
                         <span className="text-gray-600 text-sm">{item.label}</span>
-                        <span className={`font-${item.bold ? 'black' : 'semibold'} ${
+                        <span className={`${item.bold ? 'font-black' : 'font-semibold'} ${
                           item.color === 'green' ? 'text-green-600' :
                           item.color === 'blue' ? 'text-blue-600' :
                           item.color === 'orange' ? 'text-orange-500' :
@@ -240,23 +232,18 @@ export default function SimulationCredit() {
                       </div>
                     ))}
                   </div>
-
-                  {/* Apport */}
                   <div className="mt-4">
                     <div className="flex justify-between text-xs text-gray-400 mb-1">
                       <span>Apport ({resultat.apport_pct}%)</span>
                       <span>Crédit ({100 - resultat.apport_pct}%)</span>
                     </div>
                     <div className="h-3 bg-gray-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full"
-                        style={{ width: `${resultat.apport_pct}%` }}
-                      />
+                      <div className="h-full bg-gradient-to-r from-green-400 to-blue-500 rounded-full"
+                        style={{ width: `${resultat.apport_pct}%` }} />
                     </div>
                   </div>
                 </div>
 
-                {/* Tableau amortissement */}
                 {tableauAmortissement().length > 0 && (
                   <div className="bg-white rounded-2xl shadow-sm p-6">
                     <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -277,15 +264,9 @@ export default function SimulationCredit() {
                           {tableauAmortissement().map((row) => (
                             <tr key={row.annee} className="border-b border-gray-50 hover:bg-gray-50">
                               <td className="py-2 font-medium">An {row.annee}</td>
-                              <td className="py-2 text-right text-green-600">
-                                {formaterPrix(row.capital)}
-                              </td>
-                              <td className="py-2 text-right text-orange-500">
-                                {formaterPrix(row.interets)}
-                              </td>
-                              <td className="py-2 text-right text-blue-600 font-semibold">
-                                {formaterPrix(row.solde)}
-                              </td>
+                              <td className="py-2 text-right text-green-600">{formaterPrix(row.capital)}</td>
+                              <td className="py-2 text-right text-orange-500">{formaterPrix(row.interets)}</td>
+                              <td className="py-2 text-right text-blue-600 font-semibold">{formaterPrix(row.solde)}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -304,5 +285,17 @@ export default function SimulationCredit() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SimulationCredit() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin"/>
+      </div>
+    }>
+      <SimulationCreditContent />
+    </Suspense>
   );
 }

@@ -13,6 +13,7 @@ import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite
 import BoutonPartage from '../../../components/BoutonPartage';
 import BadgesUtilisateur from '../../../components/BadgesUtilisateur';
 import HistoriquePrix from '../../../components/HistoriquePrix';
+
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
@@ -328,6 +329,9 @@ export default function DetailAnnonce() {
               </div>
             )}
 
+            {/* Historique des prix */}
+            <HistoriquePrix annonceId={annonce.id} />
+
             {/* Calendrier disponibilité */}
             {(annonce.type_transaction === 'location' ||
               annonce.categorie === 'hotel') && (
@@ -337,9 +341,6 @@ export default function DetailAnnonce() {
               />
             )}
           </div>
-
-          {/* Historique des prix */}
-          <HistoriquePrix annonceId={annonce.id} />
 
           {/* Sidebar contact */}
           <div className="space-y-4">
@@ -387,6 +388,14 @@ export default function DetailAnnonce() {
                     className="w-full flex items-center justify-center gap-2 bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition">
                     <CreditCard size={18} />
                     {t('annonce.payer')}
+                  </Link>
+                )}
+
+                {/* Simulation crédit pour les ventes */}
+                {annonce.type_transaction === 'vente' && (
+                  <Link href={`/simulation-credit?prix=${annonce.prix}`}
+                    className="w-full flex items-center justify-center gap-2 border-2 border-green-500 text-green-600 py-3 rounded-xl font-medium hover:bg-green-50 transition">
+                    🏦 Simuler un crédit
                   </Link>
                 )}
 
