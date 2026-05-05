@@ -16,11 +16,12 @@ export default function Accueil() {
   const [chargement, setChargement] = useState(true);
   const [recherche, setRecherche] = useState('');
   const [categorie, setCategorie] = useState('');
+  const [typeTransaction, setTypeTransaction] = useState('');
   const [favoris, setFavoris] = useState([]);
 
   useEffect(() => {
     chargerAnnonces();
-  }, [categorie]);
+  }, [categorie, typeTransaction]);
 
   useEffect(() => {
     if (utilisateur) chargerFavoris();
@@ -31,6 +32,7 @@ export default function Accueil() {
       setChargement(true);
       const params = new URLSearchParams();
       if (categorie) params.append('categorie', categorie);
+      if (typeTransaction) params.append('type_transaction', typeTransaction);
       const response = await api.get(`/annonces?${params}`);
       setAnnonces(response.data.annonces || []);
     } catch (erreur) {
@@ -71,12 +73,14 @@ export default function Accueil() {
   };
 
   const categories = [
-    { id: '', label: t('categories.tout'), icon: Home },
-    { id: 'maison', label: t('categories.maisons'), icon: Home },
-    { id: 'parcelle', label: t('categories.parcelles'), icon: Building },
-    { id: 'hotel', label: t('categories.hotels'), icon: Building },
-    { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag },
-    { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed },
+    { id: '', label: t('categories.tout'), icon: Home, filtre: 'categorie' },
+    { id: 'maison', label: t('categories.maisons'), icon: Home, filtre: 'categorie' },
+    { id: 'parcelle', label: t('categories.parcelles'), icon: Building, filtre: 'categorie' },
+    { id: 'hotel', label: t('categories.hotels'), icon: Building, filtre: 'categorie' },
+    { id: 'vente', label: '🏷️ Vente', icon: Building, filtre: 'type_transaction' },
+    { id: 'location', label: '🔑 Location', icon: Home, filtre: 'type_transaction' },
+    { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag, filtre: 'categorie' },
+    { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed, filtre: 'categorie' },
   ];
 
   return (
@@ -151,10 +155,21 @@ export default function Accueil() {
         <div className="flex gap-3 overflow-x-auto pb-2">
           {categories.map((cat) => {
             const Icon = cat.icon;
+            const estActif = cat.filtre === 'categorie'
+              ? categorie === cat.id
+              : typeTransaction === cat.id;
             return (
-              <button key={cat.id} onClick={() => setCategorie(cat.id)}
+              <button key={cat.id} onClick={() => {
+                if (cat.filtre === 'categorie') {
+                  setCategorie(cat.id);
+                  setTypeTransaction('');
+                } else {
+                  setTypeTransaction(cat.id);
+                  setCategorie('');
+                }
+              }}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap font-medium transition ${
-                  categorie === cat.id
+                  estActif
                     ? 'bg-blue-600 text-white'
                     : 'bg-white text-gray-600 border hover:border-blue-600 hover:text-blue-600'
                 }`}>
