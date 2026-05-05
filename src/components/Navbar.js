@@ -123,10 +123,7 @@ export default function Navbar() {
                 <Link href="/alertes" className="text-gray-600 hover:text-blue-600 transition" title="Mes alertes">
                   <BellRing size={24} />
                 </Link>
-                <Link href="/reservations" className="text-gray-600 font-medium py-2 flex items-center gap-2">
-                  <span>📅</span>
-                  Réservations
-                </Link>
+                
 
                 <Notifications />
 
@@ -202,6 +199,16 @@ export default function Navbar() {
                 <Link href="/alertes" className="text-gray-600 font-medium py-2 flex items-center gap-2">
                   <BellRing size={16} className="text-blue-600" />
                   Mes alertes
+                </Link>
+
+                <Link href="/reservations" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>📅</span>
+                  Réservations
+                </Link>
+
+                <Link href="/chat-support" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>🤖</span>
+                  Assistant virtuel
                 </Link>
 
                 <Link href="/parrainage" className="text-gray-600 font-medium py-2 flex items-center gap-2">
