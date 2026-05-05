@@ -26,6 +26,9 @@ export default function ModifierAnnonce() {
     adresse_complete: '',
     disponible_du: '',
     disponible_au: '',
+    conditions_remboursement: '',
+    delai_liberation: '',
+    type_transaction: '',
   });
 
   useEffect(() => {
@@ -40,7 +43,6 @@ export default function ModifierAnnonce() {
       const response = await api.get(`/annonces/${id}`);
       const a = response.data.annonce;
 
-      // Vérifier que c'est bien le propriétaire
       if (a.utilisateur_id !== utilisateur.id) {
         toast.error('Non autorisé');
         router.push('/dashboard');
@@ -59,6 +61,9 @@ export default function ModifierAnnonce() {
         adresse_complete: a.adresse_complete || '',
         disponible_du: a.disponible_du ? a.disponible_du.split('T')[0] : '',
         disponible_au: a.disponible_au ? a.disponible_au.split('T')[0] : '',
+        conditions_remboursement: a.conditions_remboursement || '',
+        delai_liberation: a.delai_liberation || '',
+        type_transaction: a.type_transaction || '',
       });
     } catch (err) {
       toast.error('Erreur chargement annonce');
@@ -139,6 +144,39 @@ export default function ModifierAnnonce() {
               className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition resize-none"
             />
           </div>
+
+          {/* Conditions de remboursement */}
+          {form.type_transaction === 'location' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Conditions de remboursement
+              </label>
+              <textarea name="conditions_remboursement"
+                value={form.conditions_remboursement}
+                onChange={handleChange} rows={3}
+                placeholder="Ex: Remboursement intégral si annulation 48h avant..."
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition resize-none"
+              />
+            </div>
+          )}
+
+          {/* Délai de libération */}
+          {form.type_transaction === 'location' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Délai de libération (jours)
+              </label>
+              <input type="number" name="delai_liberation"
+                value={form.delai_liberation}
+                onChange={handleChange}
+                placeholder="Ex: 30"
+                className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Nombre de jours de préavis requis avant libération du bien
+              </p>
+            </div>
+          )}
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

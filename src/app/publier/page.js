@@ -31,6 +31,8 @@ export default function Publier() {
     adresse_complete: '',
     disponible_du: new Date().toISOString().split('T')[0],
     disponible_au: '',
+    conditions_remboursement: '',
+    delai_liberation: '',
   });
 
   const handleChange = (e) => {
@@ -78,6 +80,8 @@ export default function Publier() {
     try {
       const donneesAnnonce = { ...form };
       if (!donneesAnnonce.disponible_au) delete donneesAnnonce.disponible_au;
+      if (!donneesAnnonce.conditions_remboursement) delete donneesAnnonce.conditions_remboursement;
+      if (!donneesAnnonce.delai_liberation) delete donneesAnnonce.delai_liberation;
       const response = await api.post('/annonces', donneesAnnonce);
       const id = response.data.annonce.id;
       setAnnonceId(id);
@@ -114,10 +118,9 @@ export default function Publier() {
     try {
       const token = localStorage.getItem('token');
 
-      // Upload photos
       const formDataPhotos = new FormData();
       photos.forEach(photo => formDataPhotos.append('photos', photo));
-      const photoRes = await fetch(`https://maison-plus-backend.onrender.com/api/medias/${annonceId}/photos`, {
+      const photoRes = await fetch(`http://localhost:3000/api/medias/${annonceId}/photos`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formDataPhotos
@@ -129,18 +132,16 @@ export default function Publier() {
         return;
       }
 
-      // Upload vidéos si présentes
       if (videos.length > 0) {
         const formDataVideos = new FormData();
         videos.forEach(video => formDataVideos.append('videos', video));
-        await fetch(`https://maison-plus-backend.onrender.com/api/medias/${annonceId}/videos`, {
+        await fetch(`http://localhost:3000/api/medias/${annonceId}/videos`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formDataVideos
         });
       }
 
-      // Upload documents si présents
       if (documentsAUploader.length > 0) {
         for (const doc of documentsAUploader) {
           const formDoc = new FormData();
@@ -148,7 +149,7 @@ export default function Publier() {
           formDoc.append('annonce_id', annonceId);
           formDoc.append('type_document', doc.type);
           formDoc.append('nom', doc.nom);
-          await fetch('https://maison-plus-backend.onrender.com/api/documents/upload', {
+          await fetch('http://localhost:3000/api/documents/upload', {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
             body: formDoc
@@ -272,7 +273,9 @@ export default function Publier() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Titre <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Titre <span className="text-red-500">*</span>
+                </label>
                 <input type="text" name="titre" value={form.titre} onChange={handleChange}
                   placeholder="Ex: Belle villa 4 chambres à Ouaga 2000"
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -288,8 +291,43 @@ export default function Publier() {
                 />
               </div>
 
+              {/* Conditions de remboursement - uniquement pour location */}
+              {form.type_transaction === 'location' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Conditions de remboursement
+                  </label>
+                  <textarea name="conditions_remboursement"
+                    value={form.conditions_remboursement}
+                    onChange={handleChange} rows={3}
+                    placeholder="Ex: Remboursement intégral si annulation 48h avant. Aucun remboursement après entrée dans les lieux."
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition resize-none"
+                  />
+                </div>
+              )}
+
+              {/* Délai de libération - uniquement pour location */}
+              {form.type_transaction === 'location' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Délai de libération (jours)
+                  </label>
+                  <input type="number" name="delai_liberation"
+                    value={form.delai_liberation}
+                    onChange={handleChange}
+                    placeholder="Ex: 30"
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+                  />
+                  <p className="text-xs text-gray-400 mt-1">
+                    Nombre de jours de préavis requis avant libération du bien
+                  </p>
+                </div>
+              )}
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Prix (XOF) <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Prix (XOF) <span className="text-red-500">*</span>
+                </label>
                 <div className="flex gap-2">
                   <input type="number" name="prix" value={form.prix} onChange={handleChange}
                     placeholder="150000"
@@ -324,7 +362,9 @@ export default function Publier() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Ville <span className="text-red-500">*</span></label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Ville <span className="text-red-500">*</span>
+                </label>
                 <input type="text" name="ville" value={form.ville} onChange={handleChange}
                   placeholder="Ouagadougou"
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -349,13 +389,17 @@ export default function Publier() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Disponible dès <span className="text-red-500">*</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Disponible dès <span className="text-red-500">*</span>
+                  </label>
                   <input type="date" name="disponible_du" value={form.disponible_du} onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span></label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span>
+                  </label>
                   <input type="date" name="disponible_au" value={form.disponible_au} onChange={handleChange}
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
@@ -399,13 +443,27 @@ export default function Publier() {
                   <strong>Prix :</strong> {new Intl.NumberFormat('fr-FR').format(form.prix)} XOF
                   {form.type_transaction === 'location' && ` /${form.periode}`}
                 </p>
-                <p className="text-gray-700"><strong>Ville :</strong> {form.ville} {form.quartier && `— ${form.quartier}`}</p>
-                {form.adresse_complete && <p className="text-gray-700"><strong>Adresse :</strong> {form.adresse_complete}</p>}
+                <p className="text-gray-700">
+                  <strong>Ville :</strong> {form.ville} {form.quartier && `— ${form.quartier}`}
+                </p>
+                {form.adresse_complete && (
+                  <p className="text-gray-700"><strong>Adresse :</strong> {form.adresse_complete}</p>
+                )}
                 <p className="text-gray-700"><strong>Disponible dès :</strong> {form.disponible_du}</p>
                 {form.disponible_au
                   ? <p className="text-gray-700"><strong>Jusqu&apos;au :</strong> {form.disponible_au}</p>
                   : <p className="text-gray-400 text-sm">Date de fin : indéfinie</p>
                 }
+                {form.conditions_remboursement && (
+                  <p className="text-gray-700">
+                    <strong>Remboursement :</strong> {form.conditions_remboursement}
+                  </p>
+                )}
+                {form.delai_liberation && (
+                  <p className="text-gray-700">
+                    <strong>Préavis :</strong> {form.delai_liberation} jours
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-3">

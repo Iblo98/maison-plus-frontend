@@ -315,6 +315,24 @@ export default function DetailAnnonce() {
               </div>
             )}
 
+            {/* Conditions de remboursement */}
+            {annonce.conditions_remboursement && (
+              <div className="bg-white rounded-2xl p-6 shadow-sm">
+                <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
+                  🔄 Conditions de remboursement
+                </h2>
+                <p className="text-gray-600 leading-relaxed">{annonce.conditions_remboursement}</p>
+                {annonce.delai_liberation && (
+                  <div className="mt-3 bg-orange-50 rounded-xl p-3 flex items-center gap-2">
+                    <span className="text-orange-500">⏰</span>
+                    <p className="text-orange-700 text-sm font-medium">
+                      Préavis de libération : {annonce.delai_liberation} jours
+                    </p>
+                 </div>
+               )}
+             </div>
+            )}
+
             {/* Documents officiels */}
             {documents.length > 0 && (
               <div className="bg-white rounded-2xl p-6 shadow-sm">
