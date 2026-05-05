@@ -391,6 +391,16 @@ export default function DetailAnnonce() {
                   </Link>
                 )}
 
+                {/* Bouton Réserver pour les locations */}
+                {annonce.type_transaction === 'location' &&
+                utilisateur &&
+                utilisateur.id !== annonce.utilisateur_id && (
+                 <Link href={`/reservations/nouvelle?annonce=${annonce.id}`}
+                   className="w-full flex items-center justify-center gap-2 bg-orange-500 text-white py-3 rounded-xl font-medium hover:bg-orange-600 transition">
+                   📅 Réserver en ligne
+                 </Link>
+               )}
+
                 {/* Simulation crédit pour les ventes */}
                 {annonce.type_transaction === 'vente' && (
                   <Link href={`/simulation-credit?prix=${annonce.prix}`}

@@ -123,6 +123,10 @@ export default function Navbar() {
                 <Link href="/alertes" className="text-gray-600 hover:text-blue-600 transition" title="Mes alertes">
                   <BellRing size={24} />
                 </Link>
+                <Link href="/reservations" className="text-gray-600 font-medium py-2 flex items-center gap-2">
+                  <span>📅</span>
+                  Réservations
+                </Link>
 
                 <Notifications />
 
