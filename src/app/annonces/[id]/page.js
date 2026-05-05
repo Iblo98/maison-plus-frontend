@@ -254,39 +254,58 @@ export default function DetailAnnonce() {
                 {annonce.superficie && (
                   <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
                     <Square className="text-blue-600" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-400">{t('annonce.superficie')}</p>
-                      <p className="font-semibold">{annonce.superficie} m²</p>
-                    </div>
-                  </div>
-                )}
-                {annonce.nb_pieces && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <DoorOpen className="text-blue-600" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-400">{t('annonce.pieces')}</p>
-                      <p className="font-semibold">{annonce.nb_pieces} {t('annonce.pieces').toLowerCase()}</p>
-                    </div>
-                  </div>
-                )}
-                {annonce.disponible_du && (
-                  <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                    <Calendar className="text-blue-600" size={20} />
-                    <div>
-                      <p className="text-xs text-gray-400">{t('annonce.disponible')}</p>
-                      <p className="font-semibold">{formaterDate(annonce.disponible_du)}</p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-                  <Eye className="text-blue-600" size={20} />
                   <div>
-                    <p className="text-xs text-gray-400">{t('annonce.vues')}</p>
-                    <p className="font-semibold">{annonce.nb_vues} {t('annonce.vues')}</p>
-                  </div>
+                  <p className="text-xs text-gray-400">{t('annonce.superficie')}</p>
+                  <p className="font-semibold">{annonce.superficie} m²</p>
                 </div>
               </div>
+            )}
+            {annonce.nb_pieces && (
+              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+                <DoorOpen className="text-blue-600" size={20} />
+              <div>
+              <p className="text-xs text-gray-400">{t('annonce.pieces')}</p>
+              <p className="font-semibold">{annonce.nb_pieces} {t('annonce.pieces').toLowerCase()}</p>
             </div>
+          </div>
+        )}
+        {annonce.disponible_du && (
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+            <Calendar className="text-blue-600" size={20} />
+            <div>
+              <p className="text-xs text-gray-400">{t('annonce.disponible')}</p>
+              <p className="font-semibold">{formaterDate(annonce.disponible_du)}</p>
+            </div>
+          </div>
+        )}
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+          <Eye className="text-blue-600" size={20} />
+          <div>
+            <p className="text-xs text-gray-400">{t('annonce.vues')}</p>
+            <p className="font-semibold">{annonce.nb_vues} {t('annonce.vues')}</p>
+          </div>
+        </div>
+
+        {/* Personnes intéressées */}
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+          <Heart className="text-red-500" size={20} />
+          <div>
+            <p className="text-xs text-gray-400">Intéressés</p>
+            <p className="font-semibold">{annonce.nb_interesses || 0} personnes</p>
+          </div>
+        </div>
+
+        {/* Commentaires */}
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
+          <MessageCircle className="text-blue-600" size={20} />
+          <div>
+            <p className="text-xs text-gray-400">Commentaires</p>
+            <p className="font-semibold">{annonce.nb_commentaires || 0}</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
             {/* Description */}
             {annonce.description && (
