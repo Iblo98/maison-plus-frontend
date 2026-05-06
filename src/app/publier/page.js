@@ -587,7 +587,10 @@ export default function Publier() {
               )}
 
               <button onClick={uploadMedias}
-                disabled={chargement || photos.length < 2}
+                disabled={chargement || photos.length < 2 ||
+                  (form.type_transaction === 'vente' &&
+                   ['maison', 'parcelle'].includes(form.categorie) &&
+                   documentsAUploader.length === 0)}
                 className="w-full bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition disabled:opacity-50">
                 {chargement ? 'Publication...' : `Publier l'annonce (${photos.length} photo${photos.length > 1 ? 's' : ''})`}
               </button>
@@ -595,6 +598,14 @@ export default function Publier() {
               {photos.length < 2 && (
                 <p className="text-center text-orange-500 text-sm">
                   ⚠️ Ajoutez au moins 2 photos pour publier
+                </p>
+              )}
+
+              {form.type_transaction === 'vente' &&
+               ['maison', 'parcelle'].includes(form.categorie) &&
+               documentsAUploader.length === 0 && (
+                <p className="text-center text-red-500 text-sm">
+                  ⚠️ Le titre de propriété est obligatoire pour une vente immobilière
                 </p>
               )}
             </div>

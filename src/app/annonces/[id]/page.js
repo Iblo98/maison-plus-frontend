@@ -334,13 +334,50 @@ export default function DetailAnnonce() {
             )}
 
             {/* Documents officiels */}
-            {documents.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 shadow-sm">
-                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  <FileText size={20} className="text-blue-600" />
-                  Documents officiels
-                </h2>
+            {(documents.length > 0 || annonce.type_transaction === 'vente') && (
+             <div className="bg-white rounded-2xl p-6 shadow-sm">
+               <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                 <FileText size={20} className="text-blue-600" />
+                 Documents officiels
+                 {documents.length > 0 && (
+                   <span className="bg-green-100 text-green-600 text-xs px-2 py-0.5 rounded-full font-medium">
+                     ✅ {documents.length} document{documents.length > 1 ? 's' : ''} vérifié{documents.length > 1 ? 's' : ''}
+                   </span>
+                 )}
+               </h2>
+
+              {!utilisateur ? (
+                /* Non connecté */
+                <div className="bg-gray-50 rounded-xl p-6 text-center border-2 border-dashed border-gray-200">
+                  <FileText size={40} className="text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-600 font-medium mb-1">Documents disponibles</p>
+                  <p className="text-gray-400 text-sm mb-4">
+                    Connectez-vous pour accéder aux documents officiels de cette annonce
+                  </p>
+                  <Link href="/connexion"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-blue-700 transition">
+                    Se connecter pour voir les documents
+                    </Link>
+                  </div>
+                ) : documents.length === 0 ? (
+                 /* Connecté mais pas de documents */
+                <div className="bg-orange-50 rounded-xl p-4 border border-orange-100">
+                  <p className="text-orange-600 text-sm flex items-center gap-2">
+                    <span>⚠️</span>
+                    Aucun document officiel fourni par le vendeur.
+                    Nous vous recommandons de demander le titre de propriété avant tout engagement.
+                  </p>
+                </div>
+              ) : (
+                /* Connecté avec documents */
                 <div className="space-y-3">
+                  <div className="bg-blue-50 rounded-xl p-3 border border-blue-100 mb-4">
+                    <p className="text-blue-700 text-xs flex items-center gap-2">
+                      <span>🔒</span>
+                      Ces documents sont accessibles uniquement aux utilisateurs connectés.
+                      Vérifiez leur authenticité avant tout engagement financier.
+                    </p>
+                  </div>
                   {documents.map((doc) => (
                     <div key={doc.id}
                       className="flex items-center justify-between p-3 bg-gray-50 rounded-xl hover:bg-blue-50 transition">
@@ -361,11 +398,11 @@ export default function DetailAnnonce() {
                         Voir
                       </a>
                     </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
-
             {/* Historique des prix */}
             <HistoriquePrix annonceId={annonce.id} />
 
