@@ -8,7 +8,7 @@ import { Search, MapPin, Home, SlidersHorizontal, X, Eye, Square, Heart } from '
 import PrixDevise from '../../components/PrixDevise';
 import { useAuth } from '../../context/AuthContext';
 import toast from 'react-hot-toast';
-
+import PlaceholderAnnonce from '../../components/PlaceholderAnnonce';
 function RechercheContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -308,9 +308,10 @@ function RechercheContent() {
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Home size={56} className="text-blue-300" />
-                      </div>
+                      <PlaceholderAnnonce
+                        categorie={annonce.categorie}
+                        sousType={annonce.sous_type}
+                      />
                     )}
                     <span className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${
                       annonce.type_transaction === 'location'
@@ -339,6 +340,12 @@ function RechercheContent() {
                   </div>
                   <div className="p-4">
                     <h3 className="font-bold text-gray-800 text-base mb-1 line-clamp-2">{annonce.titre}</h3>
+                    <h3 className="font-bold text-gray-800 text-base mb-1 line-clamp-2">{annonce.titre}</h3>
+                    {annonce.sous_type && (
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-2 inline-block">
+                        {annonce.sous_type}
+                      </span>
+                    )}
                     <div className="flex items-center gap-1 text-gray-400 text-sm mb-2">
                       <MapPin size={13} />
                       <span>{annonce.quartier ? `${annonce.quartier}, ` : ''}{annonce.ville}</span>

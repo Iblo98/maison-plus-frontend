@@ -5,9 +5,10 @@ import Navbar from '../components/Navbar';
 import api from '../lib/api';
 import { useAuth } from '../context/AuthContext';
 import { useLangue } from '../context/LangueContext';
-import { Search, MapPin, Home, Building, ShoppingBag, UtensilsCrossed, Shield, Eye, Heart, Square } from 'lucide-react';
+import { Search, MapPin, Home, Building, ShoppingBag, UtensilsCrossed, Shield, Eye, Heart, Square, PartyPopper } from 'lucide-react';
 import PrixDevise from '../components/PrixDevise';
 import toast from 'react-hot-toast';
+import PlaceholderAnnonce from '../components/PlaceholderAnnonce';
 
 export default function Accueil() {
   const { t } = useLangue();
@@ -73,16 +74,16 @@ export default function Accueil() {
   };
 
   const categories = [
-  { id: '', label: t('categories.tout'), icon: Home, filtre: 'categorie' },
-  { id: 'maison', label: t('categories.maisons'), icon: Home, filtre: 'categorie' },
-  { id: 'parcelle', label: t('categories.parcelles'), icon: Building, filtre: 'categorie' },
-  { id: 'hotel', label: t('categories.hotels'), icon: Building, filtre: 'categorie' },
-  { id: 'ceremonie', label: '🎉 Cérémonie', icon: Home, filtre: 'categorie' },
-  { id: 'vente', label: '🏷️ Vente', icon: Building, filtre: 'type_transaction' },
-  { id: 'location', label: '🔑 Location', icon: Home, filtre: 'type_transaction' },
-  { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag, filtre: 'categorie' },
-  { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed, filtre: 'categorie' },
-];
+    { id: '', label: t('categories.tout'), icon: Home, filtre: 'categorie' },
+    { id: 'maison', label: t('categories.maisons'), icon: Home, filtre: 'categorie' },
+    { id: 'parcelle', label: t('categories.parcelles'), icon: Building, filtre: 'categorie' },
+    { id: 'hotel', label: t('categories.hotels'), icon: Building, filtre: 'categorie' },
+    { id: 'ceremonie', label: 'Cérémonie', icon: PartyPopper, filtre: 'categorie' },
+    { id: 'vente', label: 'Vente', icon: Building, filtre: 'type_transaction' },
+    { id: 'location', label: 'Location', icon: Home, filtre: 'type_transaction' },
+    { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag, filtre: 'categorie' },
+    { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed, filtre: 'categorie' },
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -138,7 +139,9 @@ export default function Accueil() {
       <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 px-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🧠</span>
+            <div className="w-10 h-10 bg-white bg-opacity-20 rounded-xl flex items-center justify-center">
+              <Search size={20} className="text-white" />
+            </div>
             <div>
               <p className="font-bold">Estimation de prix IA</p>
               <p className="text-purple-100 text-sm">Découvrez le juste prix de votre bien en quelques secondes</p>
@@ -224,25 +227,28 @@ export default function Accueil() {
                 <div className="bg-white rounded-2xl overflow-hidden shadow hover:shadow-xl transition-all duration-300 cursor-pointer group">
 
                   {/* Image */}
-                  <div className="h-52 bg-gradient-to-br from-blue-100 to-blue-200 relative overflow-hidden">
+                  <div className="h-52 relative overflow-hidden">
                     {annonce.photo_principale ? (
                       <img src={annonce.photo_principale} alt={annonce.titre}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Home size={56} className="text-blue-300" />
-                      </div>
+                      <PlaceholderAnnonce
+                        categorie={annonce.categorie}
+                        sousType={annonce.sous_type}
+                      />
                     )}
 
                     {/* Badge type */}
-                    <span className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${
-                      annonce.type_transaction === 'location'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-green-500 text-white'
-                    }`}>
-                      {annonce.type_transaction === 'location' ? t('annonce.location') : t('annonce.vente')}
-                    </span>
+                    {annonce.type_transaction && (
+                      <span className={`absolute top-3 left-3 text-xs font-bold px-3 py-1 rounded-full ${
+                        annonce.type_transaction === 'location'
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-green-500 text-white'
+                      }`}>
+                        {annonce.type_transaction === 'location' ? t('annonce.location') : t('annonce.vente')}
+                      </span>
+                    )}
 
                     {/* Vues */}
                     <span className="absolute top-3 right-3 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1">
@@ -287,6 +293,11 @@ export default function Accueil() {
                     <h3 className="font-bold text-gray-800 text-base mb-1 line-clamp-2">
                       {annonce.titre}
                     </h3>
+                    {annonce.sous_type && (
+                      <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full mb-2 inline-block">
+                        {annonce.sous_type}
+                      </span>
+                    )}
                     <div className="flex items-center gap-1 text-gray-400 text-sm mb-2">
                       <MapPin size={13} />
                       <span>{annonce.quartier ? `${annonce.quartier}, ` : ''}{annonce.ville}</span>
