@@ -73,15 +73,16 @@ export default function Accueil() {
   };
 
   const categories = [
-    { id: '', label: t('categories.tout'), icon: Home, filtre: 'categorie' },
-    { id: 'maison', label: t('categories.maisons'), icon: Home, filtre: 'categorie' },
-    { id: 'parcelle', label: t('categories.parcelles'), icon: Building, filtre: 'categorie' },
-    { id: 'hotel', label: t('categories.hotels'), icon: Building, filtre: 'categorie' },
-    { id: 'vente', label: '🏷️ Vente', icon: Building, filtre: 'type_transaction' },
-    { id: 'location', label: '🔑 Location', icon: Home, filtre: 'type_transaction' },
-    { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag, filtre: 'categorie' },
-    { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed, filtre: 'categorie' },
-  ];
+  { id: '', label: t('categories.tout'), icon: Home, filtre: 'categorie' },
+  { id: 'maison', label: t('categories.maisons'), icon: Home, filtre: 'categorie' },
+  { id: 'parcelle', label: t('categories.parcelles'), icon: Building, filtre: 'categorie' },
+  { id: 'hotel', label: t('categories.hotels'), icon: Building, filtre: 'categorie' },
+  { id: 'ceremonie', label: '🎉 Cérémonie', icon: Home, filtre: 'categorie' },
+  { id: 'vente', label: '🏷️ Vente', icon: Building, filtre: 'type_transaction' },
+  { id: 'location', label: '🔑 Location', icon: Home, filtre: 'type_transaction' },
+  { id: 'marketplace', label: t('categories.objets'), icon: ShoppingBag, filtre: 'categorie' },
+  { id: 'restaurant', label: t('categories.restaurants'), icon: UtensilsCrossed, filtre: 'categorie' },
+];
 
   return (
     <div className="min-h-screen bg-gray-50">

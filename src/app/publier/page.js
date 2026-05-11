@@ -21,6 +21,7 @@ export default function Publier() {
     titre: '',
     description: '',
     categorie: 'maison',
+    sous_type: '',
     type_transaction: 'location',
     prix: '',
     periode: 'mois',
@@ -35,8 +36,84 @@ export default function Publier() {
     delai_liberation: '',
   });
 
+  // Définition des catégories avec leurs règles
+  const categories = [
+    {
+      id: 'maison',
+      label: '🏠 Maison / Appart',
+      avecTypeTransaction: true,
+      sousTypes: [
+        'Maison d\'habitation', 'Appartement', 'Villa',
+        'Immeuble', 'Magasin', 'Kiosque', 'Bureau', 'Autre'
+      ]
+    },
+    {
+      id: 'parcelle',
+      label: '🌍 Parcelle / Terrain',
+      avecTypeTransaction: true,
+      sousTypes: [
+        'Terrain nu', 'Terrain bâti', 'Terrain agricole', 'Autre'
+      ]
+    },
+    {
+      id: 'hotel',
+      label: '🏨 Hôtel / Auberge',
+      avecTypeTransaction: true,
+      sousTypes: [
+        'Hôtel', 'Auberge', 'Résidence', 'Maison d\'hôtes', 'Autre'
+      ]
+    },
+    {
+      id: 'ceremonie',
+      label: '🎉 Cérémonie / Événement',
+      avecTypeTransaction: true,
+      typeTransactionFixe: 'location',
+      sousTypes: [
+        'Chaises', 'Tables', 'Tentes / Bâches', 'Sono / Matériel',
+        'Vaisselle', 'Décoration', 'Traiteur / Plats locaux',
+        'Cuisine cérémonie', 'Autre service cérémonie'
+      ]
+    },
+    {
+      id: 'restaurant',
+      label: '🍽️ Restaurant / Maquis',
+      avecTypeTransaction: false,
+      sousTypes: [
+        'Restaurant', 'Maquis', 'Fast-food',
+        'Traiteur', 'Boulangerie', 'Autre'
+      ]
+    },
+    {
+      id: 'marketplace',
+      label: '🛒 Objet / Marketplace',
+      avecTypeTransaction: false,
+      typeTransactionFixe: 'vente',
+      sousTypes: [
+        'Électronique', 'Mobilier', 'Vêtements',
+        'Véhicule', 'Électroménager', 'Sport', 'Autre'
+      ]
+    },
+  ];
+
+  const categorieActive = categories.find(c => c.id === form.categorie);
+
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleCategorieChange = (cat) => {
+    const newForm = {
+      ...form,
+      categorie: cat.id,
+      sous_type: '',
+    };
+    // Fixer le type_transaction si nécessaire
+    if (cat.typeTransactionFixe) {
+      newForm.type_transaction = cat.typeTransactionFixe;
+    } else if (!cat.avecTypeTransaction) {
+      newForm.type_transaction = 'vente';
+    }
+    setForm(newForm);
   };
 
   const verifierKYC = async () => {
@@ -189,14 +266,6 @@ export default function Publier() {
 
   const supprimerVideo = (index) => setVideos(videos.filter((_, i) => i !== index));
 
-  const categories = [
-    { id: 'maison', label: 'Maison' },
-    { id: 'parcelle', label: 'Parcelle' },
-    { id: 'hotel', label: 'Hôtel' },
-    { id: 'marketplace', label: 'Objet' },
-    { id: 'restaurant', label: 'Restaurant' },
-  ];
-
   const periodes = [
     { id: 'heure', label: '/heure' },
     { id: 'jour', label: '/jour' },
@@ -211,6 +280,12 @@ export default function Publier() {
     { id: 'diagnostic', label: 'Diagnostic technique' },
     { id: 'autre', label: 'Autre document' },
   ];
+
+  // Vérifier si documents obligatoires
+  const documentsObligatoires =
+    form.type_transaction === 'vente' &&
+    ['maison', 'parcelle'].includes(form.categorie) &&
+    documentsAUploader.length === 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -238,13 +313,16 @@ export default function Publier() {
             <div className="space-y-4">
               <h2 className="text-lg font-bold text-gray-800 mb-4">Informations</h2>
 
+              {/* Catégorie */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Catégorie</label>
-                <div className="grid grid-cols-3 gap-2">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Catégorie <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
                   {categories.map((cat) => (
                     <button key={cat.id} type="button"
-                      onClick={() => setForm({ ...form, categorie: cat.id })}
-                      className={`py-2 px-3 rounded-xl text-sm font-medium border-2 transition ${
+                      onClick={() => handleCategorieChange(cat)}
+                      className={`py-2.5 px-3 rounded-xl text-sm font-medium border-2 transition text-left ${
                         form.categorie === cat.id
                           ? 'border-blue-600 bg-blue-50 text-blue-600'
                           : 'border-gray-200 text-gray-600 hover:border-blue-300'
@@ -255,44 +333,97 @@ export default function Publier() {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['location', 'vente'].map((type) => (
-                    <button key={type} type="button"
-                      onClick={() => setForm({ ...form, type_transaction: type })}
-                      className={`py-2 px-3 rounded-xl text-sm font-medium border-2 transition capitalize ${
-                        form.type_transaction === type
-                          ? 'border-blue-600 bg-blue-50 text-blue-600'
-                          : 'border-gray-200 text-gray-600 hover:border-blue-300'
-                      }`}>
-                      {type}
-                    </button>
-                  ))}
+              {/* Sous-type */}
+              {categorieActive?.sousTypes && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type précis <span className="text-red-500">*</span>
+                  </label>
+                  <select name="sous_type" value={form.sous_type} onChange={handleChange}
+                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition">
+                    <option value="">Sélectionnez un type</option>
+                    {categorieActive.sousTypes.map((st) => (
+                      <option key={st} value={st}>{st}</option>
+                    ))}
+                  </select>
                 </div>
-              </div>
+              )}
 
+              {/* Type transaction — uniquement si la catégorie le permet */}
+              {categorieActive?.avecTypeTransaction && !categorieActive?.typeTransactionFixe && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Type de transaction <span className="text-red-500">*</span>
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['location', 'vente'].map((type) => (
+                      <button key={type} type="button"
+                        onClick={() => setForm({ ...form, type_transaction: type })}
+                        className={`py-2 px-3 rounded-xl text-sm font-medium border-2 transition capitalize ${
+                          form.type_transaction === type
+                            ? 'border-blue-600 bg-blue-50 text-blue-600'
+                            : 'border-gray-200 text-gray-600 hover:border-blue-300'
+                        }`}>
+                        {type === 'location' ? '🔑 Location' : '🏷️ Vente'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Badge type fixe */}
+              {categorieActive?.typeTransactionFixe && (
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-100">
+                  <p className="text-blue-700 text-sm font-medium">
+                    {categorieActive.typeTransactionFixe === 'location'
+                      ? '🔑 Cette catégorie est uniquement en Location'
+                      : '🏷️ Cette catégorie est uniquement en Vente'}
+                  </p>
+                </div>
+              )}
+
+              {/* Badge restaurant */}
+              {!categorieActive?.avecTypeTransaction && form.categorie === 'restaurant' && (
+                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                  <p className="text-orange-700 text-sm font-medium">
+                    🍽️ Publication de menu — pas de location/vente
+                  </p>
+                </div>
+              )}
+
+              {/* Titre */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Titre <span className="text-red-500">*</span>
                 </label>
                 <input type="text" name="titre" value={form.titre} onChange={handleChange}
-                  placeholder="Ex: Belle villa 4 chambres à Ouaga 2000"
+                  placeholder={
+                    form.categorie === 'restaurant' ? 'Ex: Menu du jour — Riz sauce tomate' :
+                    form.categorie === 'ceremonie' ? 'Ex: Location chaises et tables pour cérémonies' :
+                    form.categorie === 'marketplace' ? 'Ex: Télévision Samsung 55 pouces' :
+                    'Ex: Belle villa 4 chambres à Ouaga 2000'
+                  }
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                 />
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                 <textarea name="description" value={form.description} onChange={handleChange}
-                  placeholder="Décrivez votre bien en détail..."
+                  placeholder={
+                    form.categorie === 'restaurant' ? 'Décrivez votre menu, ingrédients, prix par plat...' :
+                    form.categorie === 'ceremonie' ? 'Décrivez votre service, capacité, disponibilité...' :
+                    'Décrivez votre bien en détail...'
+                  }
                   rows={4}
                   className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition resize-none"
                 />
               </div>
 
-              {/* Conditions de remboursement - uniquement pour location */}
-              {form.type_transaction === 'location' && (
+              {/* Conditions remboursement — location uniquement */}
+              {form.type_transaction === 'location' &&
+               categorieActive?.avecTypeTransaction && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Conditions de remboursement
@@ -300,14 +431,15 @@ export default function Publier() {
                   <textarea name="conditions_remboursement"
                     value={form.conditions_remboursement}
                     onChange={handleChange} rows={3}
-                    placeholder="Ex: Remboursement intégral si annulation 48h avant. Aucun remboursement après entrée dans les lieux."
+                    placeholder="Ex: Remboursement intégral si annulation 48h avant..."
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition resize-none"
                   />
                 </div>
               )}
 
-              {/* Délai de libération - uniquement pour location */}
-              {form.type_transaction === 'location' && (
+              {/* Délai de libération — location immobilière uniquement */}
+              {form.type_transaction === 'location' &&
+               ['maison', 'parcelle', 'hotel'].includes(form.categorie) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Délai de libération (jours)
@@ -319,11 +451,12 @@ export default function Publier() {
                     className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Nombre de jours de préavis requis avant libération du bien
+                    Nombre de jours de préavis requis avant libération
                   </p>
                 </div>
               )}
 
+              {/* Prix */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Prix (XOF) <span className="text-red-500">*</span>
@@ -333,7 +466,8 @@ export default function Publier() {
                     placeholder="150000"
                     className="flex-1 border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
                   />
-                  {form.type_transaction === 'location' && (
+                  {(form.type_transaction === 'location' ||
+                    form.categorie === 'ceremonie') && (
                     <select name="periode" value={form.periode} onChange={handleChange}
                       className="border border-gray-300 rounded-xl px-3 py-3 outline-none focus:border-blue-500 transition">
                       {periodes.map(p => (
@@ -344,23 +478,27 @@ export default function Publier() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Superficie (m²)</label>
-                  <input type="number" name="superficie" value={form.superficie} onChange={handleChange}
-                    placeholder="200"
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
-                  />
+              {/* Superficie + pièces — immobilier uniquement */}
+              {['maison', 'parcelle', 'hotel'].includes(form.categorie) && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Superficie (m²)</label>
+                    <input type="number" name="superficie" value={form.superficie} onChange={handleChange}
+                      placeholder="200"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Nb pièces</label>
+                    <input type="number" name="nb_pieces" value={form.nb_pieces} onChange={handleChange}
+                      placeholder="4"
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Nb pièces</label>
-                  <input type="number" name="nb_pieces" value={form.nb_pieces} onChange={handleChange}
-                    placeholder="4"
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
-                  />
-                </div>
-              </div>
+              )}
 
+              {/* Ville */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Ville <span className="text-red-500">*</span>
@@ -387,33 +525,40 @@ export default function Publier() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Disponible dès <span className="text-red-500">*</span>
-                  </label>
-                  <input type="date" name="disponible_du" value={form.disponible_du} onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
-                  />
+              {/* Dates — pas pour restaurant */}
+              {form.categorie !== 'restaurant' && (
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Disponible dès <span className="text-red-500">*</span>
+                    </label>
+                    <input type="date" name="disponible_du" value={form.disponible_du} onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span>
+                    </label>
+                    <input type="date" name="disponible_au" value={form.disponible_au} onChange={handleChange}
+                      className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Jusqu&apos;au <span className="text-gray-400 font-normal">(optionnel)</span>
-                  </label>
-                  <input type="date" name="disponible_au" value={form.disponible_au} onChange={handleChange}
-                    className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
-                  />
-                </div>
-              </div>
+              )}
 
+              {/* Résumé */}
               {form.titre && (
                 <div className="bg-blue-50 rounded-xl p-4 border border-blue-100">
                   <h3 className="font-semibold text-blue-800 mb-2 flex items-center gap-2">
                     <Home size={16} />
                     Résumé
                   </h3>
-                  <p className="text-blue-700 text-sm"><strong>Titre :</strong> {form.titre}</p>
-                  <p className="text-blue-700 text-sm"><strong>Type :</strong> {form.type_transaction} — {form.categorie}</p>
+                  <p className="text-blue-700 text-sm"><strong>Catégorie :</strong> {categorieActive?.label}</p>
+                  {form.sous_type && <p className="text-blue-700 text-sm"><strong>Type :</strong> {form.sous_type}</p>}
+                  {categorieActive?.avecTypeTransaction && (
+                    <p className="text-blue-700 text-sm"><strong>Transaction :</strong> {form.type_transaction}</p>
+                  )}
                   <p className="text-blue-700 text-sm">
                     <strong>Prix :</strong> {form.prix ? new Intl.NumberFormat('fr-FR').format(form.prix) + ' XOF' : '-'}
                     {form.type_transaction === 'location' && ` /${form.periode}`}
@@ -423,7 +568,7 @@ export default function Publier() {
               )}
 
               <button onClick={passerEtape2}
-                disabled={!form.titre || !form.prix || !form.ville}
+                disabled={!form.titre || !form.prix || !form.ville || !form.sous_type}
                 className="w-full bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-700 transition disabled:opacity-50">
                 Continuer
               </button>
@@ -436,9 +581,12 @@ export default function Publier() {
               <h2 className="text-lg font-bold text-gray-800 mb-4">Confirmer l&apos;annonce</h2>
 
               <div className="bg-gray-50 rounded-xl p-4 space-y-2">
+                <p className="text-gray-700"><strong>Catégorie :</strong> {categorieActive?.label}</p>
+                <p className="text-gray-700"><strong>Type précis :</strong> {form.sous_type}</p>
+                {categorieActive?.avecTypeTransaction && (
+                  <p className="text-gray-700"><strong>Transaction :</strong> {form.type_transaction}</p>
+                )}
                 <p className="text-gray-700"><strong>Titre :</strong> {form.titre}</p>
-                <p className="text-gray-700"><strong>Catégorie :</strong> {form.categorie}</p>
-                <p className="text-gray-700"><strong>Type :</strong> {form.type_transaction}</p>
                 <p className="text-gray-700">
                   <strong>Prix :</strong> {new Intl.NumberFormat('fr-FR').format(form.prix)} XOF
                   {form.type_transaction === 'location' && ` /${form.periode}`}
@@ -449,20 +597,17 @@ export default function Publier() {
                 {form.adresse_complete && (
                   <p className="text-gray-700"><strong>Adresse :</strong> {form.adresse_complete}</p>
                 )}
-                <p className="text-gray-700"><strong>Disponible dès :</strong> {form.disponible_du}</p>
-                {form.disponible_au
-                  ? <p className="text-gray-700"><strong>Jusqu&apos;au :</strong> {form.disponible_au}</p>
-                  : <p className="text-gray-400 text-sm">Date de fin : indéfinie</p>
-                }
+                {form.disponible_du && (
+                  <p className="text-gray-700"><strong>Disponible dès :</strong> {form.disponible_du}</p>
+                )}
+                {form.disponible_au && (
+                  <p className="text-gray-700"><strong>Jusqu&apos;au :</strong> {form.disponible_au}</p>
+                )}
                 {form.conditions_remboursement && (
-                  <p className="text-gray-700">
-                    <strong>Remboursement :</strong> {form.conditions_remboursement}
-                  </p>
+                  <p className="text-gray-700"><strong>Remboursement :</strong> {form.conditions_remboursement}</p>
                 )}
                 {form.delai_liberation && (
-                  <p className="text-gray-700">
-                    <strong>Préavis :</strong> {form.delai_liberation} jours
-                  </p>
+                  <p className="text-gray-700"><strong>Préavis :</strong> {form.delai_liberation} jours</p>
                 )}
               </div>
 
@@ -479,7 +624,7 @@ export default function Publier() {
             </div>
           )}
 
-          {/* Etape 3 — Photos, vidéos et documents */}
+          {/* Etape 3 */}
           {etape === 3 && (
             <div className="space-y-6">
               <h2 className="text-lg font-bold text-gray-800">Photos et vidéos</h2>
@@ -542,14 +687,26 @@ export default function Publier() {
                 )}
               </div>
 
-              {/* Documents officiels */}
-              {(form.type_transaction === 'vente' &&
-                ['maison', 'parcelle', 'hotel'].includes(form.categorie)) && (
+              {/* Documents officiels — vente immobilière uniquement */}
+              {form.type_transaction === 'vente' &&
+               ['maison', 'parcelle', 'hotel'].includes(form.categorie) && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Documents officiels
-                    <span className="text-gray-400 font-normal ml-1">(optionnel — rassure les acheteurs)</span>
+                    {['maison', 'parcelle'].includes(form.categorie)
+                      ? <span className="text-red-500 ml-1">* (obligatoire)</span>
+                      : <span className="text-gray-400 font-normal ml-1">(recommandé)</span>
+                    }
                   </label>
+
+                  {['maison', 'parcelle'].includes(form.categorie) && (
+                    <div className="bg-red-50 rounded-xl p-3 border border-red-100 mb-3">
+                      <p className="text-red-600 text-xs font-medium">
+                        📋 Pour la vente d&apos;une {form.categorie}, le titre de propriété est obligatoire.
+                        Cela protège l&apos;acheteur et renforce la crédibilité de votre annonce.
+                      </p>
+                    </div>
+                  )}
 
                   <div className="space-y-2 mb-3">
                     {documentsAUploader.map((doc, index) => (
@@ -587,10 +744,7 @@ export default function Publier() {
               )}
 
               <button onClick={uploadMedias}
-                disabled={chargement || photos.length < 2 ||
-                  (form.type_transaction === 'vente' &&
-                   ['maison', 'parcelle'].includes(form.categorie) &&
-                   documentsAUploader.length === 0)}
+                disabled={chargement || photos.length < 2 || documentsObligatoires}
                 className="w-full bg-green-500 text-white py-3 rounded-xl font-medium hover:bg-green-600 transition disabled:opacity-50">
                 {chargement ? 'Publication...' : `Publier l'annonce (${photos.length} photo${photos.length > 1 ? 's' : ''})`}
               </button>
@@ -601,9 +755,7 @@ export default function Publier() {
                 </p>
               )}
 
-              {form.type_transaction === 'vente' &&
-               ['maison', 'parcelle'].includes(form.categorie) &&
-               documentsAUploader.length === 0 && (
+              {documentsObligatoires && (
                 <p className="text-center text-red-500 text-sm">
                   ⚠️ Le titre de propriété est obligatoire pour une vente immobilière
                 </p>
