@@ -8,7 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Heart, Home, MapPin, Eye } from 'lucide-react';
 import toast from 'react-hot-toast';
 import PrixDevise from '../../components/PrixDevise';
-
+import PlaceholderAnnonce from '../../components/PlaceholderAnnonce';
 export default function Favoris() {
   const { utilisateur, chargement: authChargement } = useAuth();
   const router = useRouter();
@@ -94,9 +94,10 @@ export default function Favoris() {
                     <img src={annonce.photo_principale} alt={annonce.titre}
                       className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                      <Home size={48} className="text-gray-300" />
-                    </div>
+                    <PlaceholderAnnonce
+                      categorie={annonce.categorie}
+                      sousType={annonce.sous_type}
+                    />
                   )}
                   <span className={`absolute top-3 left-3 text-xs font-bold px-2 py-1 rounded-full ${
                     annonce.type_transaction === 'location'

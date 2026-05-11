@@ -13,7 +13,7 @@ import CalendrierDisponibilite from '../../../components/CalendrierDisponibilite
 import BoutonPartage from '../../../components/BoutonPartage';
 import BadgesUtilisateur from '../../../components/BadgesUtilisateur';
 import HistoriquePrix from '../../../components/HistoriquePrix';
-
+import PlaceholderAnnonce from '../../../components/PlaceholderAnnonce';
 export default function DetailAnnonce() {
   const { id } = useParams();
   const { utilisateur } = useAuth();
@@ -129,9 +129,10 @@ export default function DetailAnnonce() {
               <img src={annonce.photo_principale} alt={annonce.titre}
                 className="w-full h-full object-cover" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Home size={80} className="text-gray-300" />
-              </div>
+              <PlaceholderAnnonce
+                categorie={annonce.categorie}
+                sousType={annonce.sous_type}
+              />
             )}
 
             <span className={`absolute top-4 left-4 text-sm font-bold px-4 py-2 rounded-full ${
