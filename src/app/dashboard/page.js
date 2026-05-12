@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Navbar from '../../components/Navbar';
 import api from '../../lib/api';
 import { useAuth } from '../../context/AuthContext';
-import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings, Star, TrendingUp, Edit } from 'lucide-react';
+import { Home, Eye, Plus, Trash2, CheckCircle, Clock, XCircle, Camera, Settings, Star, TrendingUp, Edit, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ImageCropper from '../../components/ImageCropper';
 import Lightbox from '../../components/Lightbox';
@@ -15,6 +15,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [profil, setProfil] = useState(null);
   const [annonces, setAnnonces] = useState([]);
+  const [reservations, setReservations] = useState([]);
   const [chargement, setChargement] = useState(true);
   const [uploadingProfil, setUploadingProfil] = useState(false);
   const [uploadingCouverture, setUploadingCouverture] = useState(false);
@@ -22,6 +23,9 @@ export default function Dashboard() {
   const [cropType, setCropType] = useState(null);
   const [lightboxImage, setLightboxImage] = useState(null);
   const [lightboxTitre, setLightboxTitre] = useState('');
+  const [reservationsOuvertes, setReservationsOuvertes] = useState(true);
+  const [contreProposition, setContreProposition] = useState({});
+  const [showContreProposition, setShowContreProposition] = useState(null);
 
   useEffect(() => {
     if (!authChargement && !utilisateur) router.push('/connexion');
@@ -30,12 +34,14 @@ export default function Dashboard() {
 
   const chargerDonnees = async () => {
     try {
-      const [profilRes, annoncesRes] = await Promise.all([
+      const [profilRes, annoncesRes, reservationsRes] = await Promise.all([
         api.get('/profil/moi'),
-        api.get('/profil/moi/annonces')
+        api.get('/profil/moi/annonces'),
+        api.get('/reservations/recues').catch(() => ({ data: { reservations: [] } }))
       ]);
       setProfil(profilRes.data);
       setAnnonces(annoncesRes.data.annonces || []);
+      setReservations(reservationsRes.data.reservations || []);
     } catch (erreur) {
       toast.error('Erreur chargement des données');
     } finally {
@@ -118,7 +124,31 @@ export default function Dashboard() {
     }
   };
 
+  const gererReservation = async (reservationId, action, dates = null) => {
+    try {
+      await api.put(`/reservations/${reservationId}/statut`, {
+        statut: action,
+        dates_proposees: dates
+      });
+      const messages = {
+        'acceptee': '✅ Réservation acceptée ! Le locataire va être invité à payer.',
+        'refusee': '❌ Réservation refusée.',
+        'contre_proposition': '📅 Contre-proposition envoyée au locataire !'
+      };
+      toast.success(messages[action]);
+      setShowContreProposition(null);
+      setContreProposition({});
+      chargerDonnees();
+    } catch (erreur) {
+      toast.error('Erreur lors de la mise à jour');
+    }
+  };
+
   const formaterPrix = (prix) => new Intl.NumberFormat('fr-FR').format(prix) + ' XOF';
+
+  const formaterDate = (date) => new Date(date).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'short', year: 'numeric'
+  });
 
   const getStatutBadge = (statut) => {
     const config = {
@@ -130,6 +160,22 @@ export default function Dashboard() {
     };
     return config[statut] || { label: statut, icon: Clock, color: 'text-gray-600 bg-gray-50' };
   };
+
+  const getStatutReservation = (statut) => {
+    const config = {
+      'en_attente': { label: 'En attente', color: 'bg-yellow-100 text-yellow-700' },
+      'acceptee': { label: 'Acceptée', color: 'bg-green-100 text-green-700' },
+      'paiement_requis': { label: 'Paiement requis', color: 'bg-blue-100 text-blue-700' },
+      'payee': { label: 'Payée', color: 'bg-purple-100 text-purple-700' },
+      'confirmee': { label: 'Confirmée', color: 'bg-green-100 text-green-700' },
+      'refusee': { label: 'Refusée', color: 'bg-red-100 text-red-700' },
+      'contre_proposition': { label: 'Contre-proposition', color: 'bg-orange-100 text-orange-700' },
+      'annulee': { label: 'Annulée', color: 'bg-gray-100 text-gray-700' },
+    };
+    return config[statut] || { label: statut, color: 'bg-gray-100 text-gray-700' };
+  };
+
+  const reservationsEnAttente = reservations.filter(r => r.statut === 'en_attente');
 
   if (chargement) {
     return (
@@ -152,10 +198,8 @@ export default function Dashboard() {
 
       <div className="max-w-4xl mx-auto px-4 py-6">
 
-        {/* Carte profil style Facebook */}
+        {/* Carte profil */}
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden mb-6">
-
-          {/* Photo de couverture */}
           <div className="relative h-48 bg-gradient-to-br from-blue-400 to-blue-600">
             {photoCouverture && (
               <img src={photoCouverture} alt="Couverture"
@@ -164,24 +208,16 @@ export default function Dashboard() {
               />
             )}
             <label className="absolute bottom-3 right-3 bg-black bg-opacity-50 text-white px-3 py-1.5 rounded-lg text-sm flex items-center gap-2 cursor-pointer hover:bg-opacity-70 transition">
-              {uploadingCouverture ? (
-                <span>Upload...</span>
-              ) : (
-                <>
-                  <Camera size={14} />
-                  <span>Changer la couverture</span>
-                </>
+              {uploadingCouverture ? <span>Upload...</span> : (
+                <><Camera size={14} /><span>Changer la couverture</span></>
               )}
               <input type="file" accept="image/*" onChange={ouvrirCropCouverture}
                 className="hidden" disabled={uploadingCouverture} />
             </label>
           </div>
 
-          {/* Info profil */}
           <div className="px-6 pb-6">
             <div className="flex items-end justify-between -mt-12 mb-4">
-
-              {/* Photo de profil */}
               <div className="relative">
                 <div className="w-24 h-24 rounded-full border-4 border-white bg-blue-100 overflow-hidden shadow-md cursor-pointer"
                   onClick={() => { if (photoProfil) { setLightboxImage(photoProfil); setLightboxTitre('Photo de profil'); }}}>
@@ -198,15 +234,12 @@ export default function Dashboard() {
                 <label className="absolute bottom-0 right-0 bg-gray-800 text-white rounded-full p-1.5 cursor-pointer hover:bg-gray-700 transition shadow">
                   {uploadingProfil ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/>
-                  ) : (
-                    <Camera size={14} />
-                  )}
+                  ) : <Camera size={14} />}
                   <input type="file" accept="image/*" onChange={ouvrirCropProfil}
                     className="hidden" disabled={uploadingProfil} />
                 </label>
               </div>
 
-              {/* Actions */}
               <div className="flex items-center gap-2 mt-14">
                 <Link href="/statistiques"
                   className="flex items-center gap-2 border border-gray-300 text-gray-700 px-4 py-2 rounded-xl text-sm font-medium hover:bg-gray-50 transition">
@@ -244,7 +277,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Statistiques rapides */}
+        {/* Statistiques */}
         {profil?.statistiques && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
             {[
@@ -260,6 +293,170 @@ export default function Dashboard() {
             ))}
           </div>
         )}
+
+        {/* Réservations reçues */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 mb-6">
+          <button
+            onClick={() => setReservationsOuvertes(!reservationsOuvertes)}
+            className="w-full flex items-center justify-between mb-4">
+            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2">
+              <Calendar size={20} className="text-orange-500" />
+              Réservations reçues
+              {reservationsEnAttente.length > 0 && (
+                <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                  {reservationsEnAttente.length} nouvelle{reservationsEnAttente.length > 1 ? 's' : ''}
+                </span>
+              )}
+            </h2>
+            {reservationsOuvertes ? <ChevronUp size={20} className="text-gray-400" /> : <ChevronDown size={20} className="text-gray-400" />}
+          </button>
+
+          {reservationsOuvertes && (
+            <>
+              {reservations.length === 0 ? (
+                <div className="text-center py-8">
+                  <Calendar size={40} className="text-gray-200 mx-auto mb-3" />
+                  <p className="text-gray-400 text-sm">Aucune réservation reçue</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reservations.map((reservation) => {
+                    const statutConfig = getStatutReservation(reservation.statut);
+                    return (
+                      <div key={reservation.id}
+                        className="border border-gray-100 rounded-xl p-4 hover:border-orange-200 transition">
+
+                        {/* Header réservation */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div>
+                            <p className="font-semibold text-gray-800">
+                              {reservation.prenom_locataire} {reservation.nom_locataire}
+                            </p>
+                            <p className="text-gray-500 text-sm">{reservation.titre_annonce}</p>
+                            <div className="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                              <Calendar size={14} className="text-orange-400" />
+                              <span>
+                                {formaterDate(reservation.date_debut)} → {formaterDate(reservation.date_fin)}
+                              </span>
+                            </div>
+                          </div>
+                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${statutConfig.color}`}>
+                            {statutConfig.label}
+                          </span>
+                        </div>
+
+                        {/* Message locataire */}
+                        {reservation.message && (
+                          <div className="bg-gray-50 rounded-xl p-3 mb-3 text-sm text-gray-600 italic">
+                            "{reservation.message}"
+                          </div>
+                        )}
+
+                        {/* Actions — uniquement si en attente */}
+                        {reservation.statut === 'en_attente' && (
+                          <div className="space-y-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => gererReservation(reservation.id, 'acceptee')}
+                                className="flex-1 bg-green-500 text-white py-2 rounded-xl text-sm font-medium hover:bg-green-600 transition flex items-center justify-center gap-2">
+                                <CheckCircle size={16} />
+                                Accepter
+                              </button>
+                              <button
+                                onClick={() => setShowContreProposition(
+                                  showContreProposition === reservation.id ? null : reservation.id
+                                )}
+                                className="flex-1 bg-orange-500 text-white py-2 rounded-xl text-sm font-medium hover:bg-orange-600 transition flex items-center justify-center gap-2">
+                                <Calendar size={16} />
+                                Proposer d&apos;autres dates
+                              </button>
+                              <button
+                                onClick={() => gererReservation(reservation.id, 'refusee')}
+                                className="flex-1 bg-red-500 text-white py-2 rounded-xl text-sm font-medium hover:bg-red-600 transition flex items-center justify-center gap-2">
+                                <XCircle size={16} />
+                                Refuser
+                              </button>
+                            </div>
+
+                            {/* Formulaire contre-proposition */}
+                            {showContreProposition === reservation.id && (
+                              <div className="bg-orange-50 rounded-xl p-4 border border-orange-100 space-y-3">
+                                <p className="text-orange-700 text-sm font-medium">
+                                  📅 Proposez de nouvelles dates disponibles
+                                </p>
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Date de début</label>
+                                    <input type="date"
+                                      min={new Date().toISOString().split('T')[0]}
+                                      value={contreProposition[reservation.id]?.debut || ''}
+                                      onChange={(e) => setContreProposition(prev => ({
+                                        ...prev,
+                                        [reservation.id]: { ...prev[reservation.id], debut: e.target.value }
+                                      }))}
+                                      className="w-full border border-orange-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-orange-400"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-500 mb-1 block">Date de fin</label>
+                                    <input type="date"
+                                      min={contreProposition[reservation.id]?.debut || new Date().toISOString().split('T')[0]}
+                                      value={contreProposition[reservation.id]?.fin || ''}
+                                      onChange={(e) => setContreProposition(prev => ({
+                                        ...prev,
+                                        [reservation.id]: { ...prev[reservation.id], fin: e.target.value }
+                                      }))}
+                                      className="w-full border border-orange-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-orange-400"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => {
+                                      const dates = contreProposition[reservation.id];
+                                      if (!dates?.debut || !dates?.fin) {
+                                        toast.error('Choisissez les deux dates');
+                                        return;
+                                      }
+                                      gererReservation(reservation.id, 'contre_proposition', dates);
+                                    }}
+                                    className="flex-1 bg-orange-500 text-white py-2 rounded-xl text-sm font-medium hover:bg-orange-600 transition">
+                                    Envoyer la proposition
+                                  </button>
+                                  <button
+                                    onClick={() => setShowContreProposition(null)}
+                                    className="px-4 border border-gray-300 text-gray-600 py-2 rounded-xl text-sm hover:bg-gray-50 transition">
+                                    Annuler
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Statut acceptée — en attente de paiement */}
+                        {reservation.statut === 'acceptee' && (
+                          <div className="bg-green-50 rounded-xl p-3 text-sm text-green-700 flex items-center gap-2">
+                            <CheckCircle size={16} />
+                            Acceptée — En attente du paiement du locataire
+                          </div>
+                        )}
+
+                        {/* Statut payée */}
+                        {reservation.statut === 'payee' && (
+                          <div className="bg-purple-50 rounded-xl p-3 text-sm text-purple-700 flex items-center gap-2">
+                            <CheckCircle size={16} />
+                            Paiement reçu — Vous recevrez votre part à la confirmation d&apos;arrivée
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Mes annonces */}
         <div className="bg-white rounded-2xl shadow-sm p-6">
@@ -312,22 +509,15 @@ export default function Dashboard() {
                         className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition">
                         <Eye size={18} />
                       </Link>
-
-                      {/* Bouton Modifier */}
                       <Link href={`/annonces/${annonce.id}/modifier`}
-                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition"
-                        title="Modifier">
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition">
                         <Edit size={18} />
                       </Link>
-
-                      {/* Bouton Sponsoriser */}
                       <Link href={`/sponsoriser?annonce=${annonce.id}`}
-                        className="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-lg transition"
-                        title="Sponsoriser">
+                        className="p-1.5 text-yellow-500 hover:bg-yellow-50 rounded-lg transition">
                         <Star size={16} />
                       </Link>
 
-                      {/* Bouton Loué/Vendu */}
                       {annonce.statut === 'publiee' && (
                         <div className="relative group">
                           <button className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition text-xs font-medium px-3">
@@ -346,7 +536,6 @@ export default function Dashboard() {
                         </div>
                       )}
 
-                      {/* Remettre en ligne */}
                       {(annonce.statut === 'loue' || annonce.statut === 'vendu') && (
                         <button onClick={() => marquerStatut(annonce.id, 'publiee')}
                           className="text-xs text-blue-600 hover:underline px-2">
@@ -367,7 +556,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Cropper */}
       {cropImage && (
         <ImageCropper
           image={cropImage}
@@ -378,7 +566,6 @@ export default function Dashboard() {
         />
       )}
 
-      {/* Lightbox */}
       {lightboxImage && (
         <Lightbox
           image={lightboxImage}
