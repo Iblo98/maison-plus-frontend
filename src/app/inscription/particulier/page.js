@@ -3,7 +3,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../../context/AuthContext';
-import api from '../../../lib/api';
 import { Home, Eye, EyeOff, Camera, User, Building } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -27,33 +26,18 @@ export default function InscriptionParticulier() {
     setChargement(true);
 
     try {
-      // Vérifier si l'email est déjà utilisé
-      //const checkEmail = await api.get(`/auth/verifier-email?email=${form.email}`);
-      //if (checkEmail.data.existe) {
-        //toast.error('Cet email est déjà utilisé !');
-        //setChargement(false);
-        //return;
-     // }
+      const { token } = await inscription({ ...form, type_compte: 'particulier' });
 
-      // Vérifier si le téléphone est déjà utilisé
-     // const checkTel = await api.get(`/auth/verifier-telephone?telephone=${form.telephone}`);
-      //if (checkTel.data.existe) {
-       // toast.error('Ce numéro de téléphone est déjà utilisé !');
-       // setChargement(false);
-       // return;
-     // }
+      if (token && photoProfil) {
+        const formData = new FormData();
+        formData.append('photo', photoProfil);
+        await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData
+        });
+      }
 
-  const { token } = await inscription({ ...form, type_compte: 'particulier' });
-
-  if (token && photoProfil) {
-    const formData = new FormData();
-    formData.append('photo', photoProfil);
-    await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}` },
-      body: formData
-    });
-  }
       toast.success('Compte créé ! Complétez votre profil.');
       router.push('/kyc');
     } catch (erreur) {
@@ -96,14 +80,18 @@ export default function InscriptionParticulier() {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Nom <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Nom <span className="text-red-500">*</span>
+              </label>
               <input type="text" name="nom" value={form.nom} onChange={handleChange}
                 placeholder="Kouraogo" required
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Prénom <span className="text-red-500">*</span></label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Prénom <span className="text-red-500">*</span>
+              </label>
               <input type="text" name="prenom" value={form.prenom} onChange={handleChange}
                 placeholder="Ibrahim" required
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -112,7 +100,9 @@ export default function InscriptionParticulier() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Email <span className="text-red-500">*</span>
+            </label>
             <input type="email" name="email" value={form.email} onChange={handleChange}
               placeholder="votre@email.com" required
               className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -120,7 +110,9 @@ export default function InscriptionParticulier() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Téléphone <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Téléphone <span className="text-red-500">*</span>
+            </label>
             <input type="tel" name="telephone" value={form.telephone} onChange={handleChange}
               placeholder="70000000" required
               className="w-full border border-gray-300 rounded-xl px-4 py-3 outline-none focus:border-blue-500 transition"
@@ -128,7 +120,9 @@ export default function InscriptionParticulier() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Mot de passe <span className="text-red-500">*</span></label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mot de passe <span className="text-red-500">*</span>
+            </label>
             <div className="relative">
               <input type={voirMDP ? 'text' : 'password'} name="mot_de_passe"
                 value={form.mot_de_passe} onChange={handleChange}
