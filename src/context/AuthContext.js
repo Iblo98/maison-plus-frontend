@@ -34,8 +34,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('token', token);
     localStorage.setItem('utilisateur', JSON.stringify(utilisateur));
     setUtilisateur(utilisateur);
-    return utilisateur;
-  };
+    return { token, utilisateur };
+};
 
   const deconnexion = () => {
     localStorage.removeItem('token');
