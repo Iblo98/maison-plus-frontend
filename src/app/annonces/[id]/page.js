@@ -505,6 +505,14 @@ export default function DetailAnnonce() {
                   <MessageCircle size={18} />
                   {t('annonce.envoyer_message')}
                 </Link>
+
+                {/* Bouton Laisser un avis */}
+                {utilisateur && utilisateur.id !== annonce.utilisateur_id && (
+                  <Link href={`/avis?annonce=${annonce.id}`}
+                    className="w-full flex items-center justify-center gap-2 border-2 border-yellow-400 text-yellow-600 py-3 rounded-xl font-medium hover:bg-yellow-50 transition">
+                    ⭐ Laisser un avis
+                  </Link>
+                )}
               </div>
             </div>
 
