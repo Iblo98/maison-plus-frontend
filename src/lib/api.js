@@ -1,4 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://maison-plus-backend.onrender.com/api';
+
+const getToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');
   }
