@@ -1,13 +1,15 @@
 'use client';
 import { useState, useEffect, useRef } from 'react';
-import { Bell, Check, Trash2, MessageCircle, Home, Eye } from 'lucide-react';
+import { Bell, Check, Trash2, MessageCircle, Home, Eye, CreditCard, Calendar, Gift, Star } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import api from '../lib/api';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import io from 'socket.io-client';
 
 export default function Notifications() {
   const { utilisateur } = useAuth();
+  const router = useRouter();
   const [ouvert, setOuvert] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [nonLues, setNonLues] = useState(0);
@@ -89,12 +91,45 @@ export default function Notifications() {
     }
   };
 
+  const handleClickNotif = async (notif) => {
+    await marquerLue(notif.id);
+    setOuvert(false);
+    if (notif.lien) {
+      router.push(notif.lien);
+    }
+  };
+
   const getIcone = (type) => {
     switch (type) {
-      case 'message': return <MessageCircle size={16} className="text-blue-500" />;
-      case 'annonce': return <Home size={16} className="text-green-500" />;
-      case 'vue': return <Eye size={16} className="text-purple-500" />;
-      default: return <Bell size={16} className="text-gray-500" />;
+      case 'message':
+        return <MessageCircle size={16} className="text-blue-500" />;
+      case 'annonce':
+        return <Home size={16} className="text-green-500" />;
+      case 'vue':
+        return <Eye size={16} className="text-purple-500" />;
+      case 'paiement':
+        return <CreditCard size={16} className="text-green-500" />;
+      case 'reservation':
+        return <Calendar size={16} className="text-orange-500" />;
+      case 'parrainage':
+        return <Gift size={16} className="text-pink-500" />;
+      case 'bienvenue':
+        return <Star size={16} className="text-yellow-500" />;
+      case 'verification':
+        return <Check size={16} className="text-green-500" />;
+      default:
+        return <Bell size={16} className="text-gray-500" />;
+    }
+  };
+
+  const getCouleurFond = (type) => {
+    switch (type) {
+      case 'paiement': return 'bg-green-100';
+      case 'reservation': return 'bg-orange-100';
+      case 'message': return 'bg-blue-100';
+      case 'bienvenue': return 'bg-yellow-100';
+      case 'verification': return 'bg-green-100';
+      default: return 'bg-gray-100';
     }
   };
 
@@ -128,12 +163,19 @@ export default function Notifications() {
 
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="font-bold text-gray-800">Notifications</h3>
+            <h3 className="font-bold text-gray-800">
+              Notifications
+              {nonLues > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                  {nonLues}
+                </span>
+              )}
+            </h3>
             {nonLues > 0 && (
               <button onClick={marquerToutesLues}
                 className="text-blue-600 text-xs hover:underline flex items-center gap-1">
                 <Check size={12} />
-                Tout marquer lu
+                Tout lire
               </button>
             )}
           </div>
@@ -148,36 +190,38 @@ export default function Notifications() {
             ) : (
               notifications.map((notif) => (
                 <div key={notif.id}
-                  onClick={() => { marquerLue(notif.id); setOuvert(false); }}
+                  onClick={() => handleClickNotif(notif)}
                   className={`flex items-start gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 transition ${
                     !notif.est_lu ? 'bg-blue-50' : ''
                   }`}>
 
                   {/* Icône type */}
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                    !notif.est_lu ? 'bg-blue-100' : 'bg-gray-100'
+                    !notif.est_lu ? getCouleurFond(notif.type) : 'bg-gray-100'
                   }`}>
                     {getIcone(notif.type)}
                   </div>
 
                   {/* Contenu */}
                   <div className="flex-1 min-w-0">
-                    {notif.lien ? (
-                      <Link href={notif.lien}>
-                        <p className={`text-sm ${!notif.est_lu ? 'font-semibold text-gray-800' : 'text-gray-600'}`}>
-                          {notif.titre}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate mt-0.5">{notif.message}</p>
-                      </Link>
-                    ) : (
-                      <>
-                        <p className={`text-sm ${!notif.est_lu ? 'font-semibold text-gray-800' : 'text-gray-600'}`}>
-                          {notif.titre}
-                        </p>
-                        <p className="text-xs text-gray-400 truncate mt-0.5">{notif.message}</p>
-                      </>
-                    )}
-                    <p className="text-xs text-gray-400 mt-1">{formaterTemps(notif.created_at)}</p>
+                    <p className={`text-sm leading-snug ${
+                      !notif.est_lu ? 'font-semibold text-gray-800' : 'text-gray-600'
+                    }`}>
+                      {notif.titre}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">
+                      {notif.message}
+                    </p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-xs text-gray-400">
+                        {formaterTemps(notif.created_at)}
+                      </p>
+                      {notif.lien && (
+                        <span className="text-xs text-blue-500 font-medium">
+                          Voir →
+                        </span>
+                      )}
+                    </div>
                   </div>
 
                   {/* Actions */}
