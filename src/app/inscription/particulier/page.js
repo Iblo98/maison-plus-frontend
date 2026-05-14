@@ -43,15 +43,22 @@ export default function InscriptionParticulier() {
         return;
       }
 
-      await inscription({ ...form, type_compte: 'particulier' });
+      const resultat = await inscription({ ...form, type_compte: 'particulier' });
 
-      const formData = new FormData();
-      formData.append('photo', photoProfil);
-      await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        body: formData
-      });
+// Attendre que le token soit disponible
+await new Promise(resolve => setTimeout(resolve, 500));
+
+const token = localStorage.getItem('token') || resultat?.token;
+
+if (token && photoProfil) {
+  const formData = new FormData();
+  formData.append('photo', photoProfil);
+  await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData
+  });
+}
 
       toast.success('Compte créé ! Complétez votre profil.');
       router.push('/kyc');
