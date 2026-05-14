@@ -28,20 +28,20 @@ export default function InscriptionParticulier() {
 
     try {
       // Vérifier si l'email est déjà utilisé
-      const checkEmail = await api.get(`/auth/verifier-email?email=${form.email}`);
-      if (checkEmail.data.existe) {
-        toast.error('Cet email est déjà utilisé !');
-        setChargement(false);
-        return;
-      }
+      //const checkEmail = await api.get(`/auth/verifier-email?email=${form.email}`);
+      //if (checkEmail.data.existe) {
+        //toast.error('Cet email est déjà utilisé !');
+        //setChargement(false);
+        //return;
+     // }
 
       // Vérifier si le téléphone est déjà utilisé
-      const checkTel = await api.get(`/auth/verifier-telephone?telephone=${form.telephone}`);
-      if (checkTel.data.existe) {
-        toast.error('Ce numéro de téléphone est déjà utilisé !');
-        setChargement(false);
-        return;
-      }
+     // const checkTel = await api.get(`/auth/verifier-telephone?telephone=${form.telephone}`);
+      //if (checkTel.data.existe) {
+       // toast.error('Ce numéro de téléphone est déjà utilisé !');
+       // setChargement(false);
+       // return;
+     // }
 
   const { token } = await inscription({ ...form, type_compte: 'particulier' });
 
