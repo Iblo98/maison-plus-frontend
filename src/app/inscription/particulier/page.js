@@ -28,18 +28,19 @@ export default function InscriptionParticulier() {
     try {
       const { token } = await inscription({ ...form, type_compte: 'particulier' });
 
+      // Upload photo en arrière-plan sans bloquer
       if (token && photoProfil) {
         const formData = new FormData();
         formData.append('photo', photoProfil);
-        await fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
+        fetch('https://maison-plus-backend.onrender.com/api/kyc/photo-profil', {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
           body: formData
-        });
+        }).catch(console.error); // Non bloquant
       }
 
-      toast.success('Compte créé ! Complétez votre profil.');
-      router.push('/kyc');
+toast.success('Compte créé ! Complétez votre profil.');
+router.push('/kyc');
     } catch (erreur) {
       toast.error(erreur?.response?.data?.message || 'Erreur lors de l\'inscription');
     } finally {
