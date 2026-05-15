@@ -279,7 +279,8 @@ export default function Navbar() {
             <Link href="/annonces?categorie=maison" className="text-gray-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50">{t('nav.maisons')}</Link>
             <Link href="/annonces?categorie=marketplace" className="text-gray-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50">{t('nav.marketplace')}</Link>
             <Link href="/annonces?categorie=restaurant" className="text-gray-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50">{t('nav.restaurants')}</Link>
-
+            <Link href="/a-propos" className="text-gray-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50">À propos</Link>
+            <Link href="/cgu" className="text-gray-600 font-medium px-3 py-2 rounded-lg hover:bg-gray-50">CGU</Link>
             <button
               onClick={() => changerLangue(langue === 'fr' ? 'en' : 'fr')}
               className="flex items-center gap-2 border border-gray-300 text-gray-600 px-3 py-2 rounded-lg text-sm font-medium w-fit mx-3 mt-1">
