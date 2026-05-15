@@ -3,7 +3,7 @@ import './globals.css';
 import { AuthProvider } from '../context/AuthContext';
 import { LangueProvider } from '../context/LangueContext';
 import { Toaster } from 'react-hot-toast';
-
+import Footer from '../components/Footer';
 const geist = Geist({ subsets: ['latin'] });
 
 export const metadata = {
@@ -73,6 +73,7 @@ export default function RootLayout({ children }) {
           <LangueProvider>
             <Toaster position="top-right" />
             {children}
+            <Footer />
           </LangueProvider>
         </AuthProvider>
       </body>
