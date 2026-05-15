@@ -322,16 +322,6 @@ export default function Accueil() {
         )}
       </div>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8 px-4">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <Home className="text-blue-400" size={24} />
-            <span className="text-xl font-bold">Maison<span className="text-green-400">+</span></span>
-          </div>
-          <p className="text-gray-400 text-sm">{t('footer.description')}</p>
-        </div>
-      </footer>
     </div>
   );
 }
