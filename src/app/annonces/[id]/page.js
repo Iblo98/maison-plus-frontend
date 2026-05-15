@@ -513,6 +513,14 @@ export default function DetailAnnonce() {
                     ⭐ Laisser un avis
                   </Link>
                 )}
+
+                {/* Bouton Signaler */}
+                {utilisateur && utilisateur.id !== annonce.utilisateur_id && (
+                  <Link href={`/signaler?annonce=${annonce.id}`}
+                    className="w-full flex items-center justify-center gap-2 text-red-400 text-sm hover:text-red-600 transition py-1">
+                    🚨 Signaler cette annonce
+                  </Link>
+                )}
               </div>
             </div>
 
