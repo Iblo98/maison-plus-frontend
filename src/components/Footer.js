@@ -12,7 +12,7 @@ export default function Footer() {
           </span>
         </div>
         <p className="text-gray-400 text-sm text-center mb-6">
-          2026 MaisonPlus — La plateforme immobilière de confiance au Burkina Faso et en Afrique.
+          © 2026 MaisonPlus — La plateforme immobilière de confiance au Burkina Faso et en Afrique.
         </p>
         <div className="flex gap-6 justify-center flex-wrap text-sm text-gray-400">
           <Link href="/a-propos" className="hover:text-white transition">À propos</Link>
