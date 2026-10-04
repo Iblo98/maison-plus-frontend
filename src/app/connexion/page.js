@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
@@ -13,6 +13,12 @@ export default function Connexion() {
   const [chargement, setChargement] = useState(false);
   const { connexion } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get('session') === 'expiree') {
+      toast.error('Votre session a expiré. Veuillez vous reconnecter.', { id: 'session-expiree' });
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

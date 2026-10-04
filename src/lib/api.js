@@ -12,12 +12,33 @@ const headers = () => ({
   ...(getToken() && { Authorization: `Bearer ${getToken()}` }),
 });
 
+// Session expirée : le serveur répond 401 alors qu'un jeton a été envoyé.
+// On ignore les routes /auth/ : là, un 401 signifie "mauvais mot de passe".
+const gererSessionExpiree = (status, url) => {
+  if (typeof window === 'undefined') return;
+  if (status !== 401 || !getToken() || url.startsWith('/auth/')) return;
+  localStorage.removeItem('token');
+  localStorage.removeItem('utilisateur');
+  if (!window.location.pathname.startsWith('/connexion')) {
+    window.location.href = '/connexion?session=expiree';
+  }
+};
+
+// Lecture commune des réponses : JSON tolérant + gestion de la session expirée
+const lireReponse = async (response, url) => {
+  let data = {};
+  try { data = await response.json(); } catch (e) { /* réponse non JSON */ }
+  if (!response.ok) {
+    gererSessionExpiree(response.status, url);
+    throw { response: { data, status: response.status } };
+  }
+  return { data };
+};
+
 const api = {
   get: async (url) => {
     const response = await fetch(`${API_URL}${url}`, { headers: headers() });
-    const data = await response.json();
-    if (!response.ok) throw { response: { data, status: response.status } };
-    return { data };
+    return lireReponse(response, url);
   },
 
   post: async (url, body) => {
@@ -26,9 +47,7 @@ const api = {
       headers: headers(),
       body: JSON.stringify(body),
     });
-    const data = await response.json();
-    if (!response.ok) throw { response: { data, status: response.status } };
-    return { data };
+    return lireReponse(response, url);
   },
 
   put: async (url, body) => {
@@ -37,9 +56,7 @@ const api = {
       headers: headers(),
       body: JSON.stringify(body),
     });
-    const data = await response.json();
-    if (!response.ok) throw { response: { data, status: response.status } };
-    return { data };
+    return lireReponse(response, url);
   },
 
   // Envoi de fichiers (multipart/form-data).
@@ -50,10 +67,7 @@ const api = {
       headers: { ...(getToken() && { Authorization: `Bearer ${getToken()}` }) },
       body: formData,
     });
-    let data = {};
-    try { data = await response.json(); } catch (e) { /* réponse non JSON */ }
-    if (!response.ok) throw { response: { data, status: response.status } };
-    return { data };
+    return lireReponse(response, url);
   },
 
   delete: async (url) => {
@@ -61,9 +75,7 @@ const api = {
       method: 'DELETE',
       headers: headers(),
     });
-    const data = await response.json();
-    if (!response.ok) throw { response: { data, status: response.status } };
-    return { data };
+    return lireReponse(response, url);
   },
 };
 
