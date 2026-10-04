@@ -42,6 +42,20 @@ const api = {
     return { data };
   },
 
+  // Envoi de fichiers (multipart/form-data).
+  // Pas de Content-Type ici : le navigateur le génère avec le bon "boundary".
+  upload: async (url, formData) => {
+    const response = await fetch(`${API_URL}${url}`, {
+      method: 'POST',
+      headers: { ...(getToken() && { Authorization: `Bearer ${getToken()}` }) },
+      body: formData,
+    });
+    let data = {};
+    try { data = await response.json(); } catch (e) { /* réponse non JSON */ }
+    if (!response.ok) throw { response: { data, status: response.status } };
+    return { data };
+  },
+
   delete: async (url) => {
     const response = await fetch(`${API_URL}${url}`, {
       method: 'DELETE',

@@ -155,10 +155,15 @@ export default function Publier() {
   const soumettreAnnonce = async () => {
     setChargement(true);
     try {
-      const donneesAnnonce = { ...form };
-      if (!donneesAnnonce.disponible_au) delete donneesAnnonce.disponible_au;
-      if (!donneesAnnonce.conditions_remboursement) delete donneesAnnonce.conditions_remboursement;
-      if (!donneesAnnonce.delai_liberation) delete donneesAnnonce.delai_liberation;
+      // On n'envoie que les champs renseignés : un champ vide ("") envoyé pour
+      // superficie / nb_pieces faisait échouer la création côté base de données.
+      const donneesAnnonce = {};
+      Object.entries(form).forEach(([cle, valeur]) => {
+        if (valeur !== '' && valeur !== null && valeur !== undefined) {
+          donneesAnnonce[cle] = valeur;
+        }
+      });
+      donneesAnnonce.description = form.description; // conservée même vide
       const response = await api.post('/annonces', donneesAnnonce);
       const id = response.data.annonce.id;
       setAnnonceId(id);
@@ -193,30 +198,19 @@ export default function Publier() {
     }
     setChargement(true);
     try {
-      const token = localStorage.getItem('token');
-
       const formDataPhotos = new FormData();
       photos.forEach(photo => formDataPhotos.append('photos', photo));
-      const photoRes = await fetch(`http://localhost:3000/api/medias/${annonceId}/photos`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formDataPhotos
-      });
-      const photoData = await photoRes.json();
-      if (!photoData.succes) {
-        toast.error(photoData.message);
-        setChargement(false);
-        return;
-      }
+      await api.upload(`/medias/${annonceId}/photos`, formDataPhotos);
 
       if (videos.length > 0) {
-        const formDataVideos = new FormData();
-        videos.forEach(video => formDataVideos.append('videos', video));
-        await fetch(`http://localhost:3000/api/medias/${annonceId}/videos`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-          body: formDataVideos
-        });
+        try {
+          const formDataVideos = new FormData();
+          videos.forEach(video => formDataVideos.append('videos', video));
+          await api.upload(`/medias/${annonceId}/videos`, formDataVideos);
+        } catch (erreurVideo) {
+          // L'échec des vidéos (optionnelles) ne bloque pas la publication
+          toast.error("Les vidéos n'ont pas pu être envoyées");
+        }
       }
 
       if (documentsAUploader.length > 0) {
@@ -226,11 +220,7 @@ export default function Publier() {
           formDoc.append('annonce_id', annonceId);
           formDoc.append('type_document', doc.type);
           formDoc.append('nom', doc.nom);
-          await fetch('http://localhost:3000/api/documents/upload', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}` },
-            body: formDoc
-          });
+          await api.upload('/documents/upload', formDoc);
         }
         toast.success(`${documentsAUploader.length} document(s) uploadé(s) !`);
       }
@@ -238,7 +228,7 @@ export default function Publier() {
       toast.success('Annonce publiée avec succès !');
       router.push('/dashboard');
     } catch (erreur) {
-      toast.error('Erreur upload médias');
+      toast.error(erreur?.response?.data?.message || 'Erreur upload médias');
     } finally {
       setChargement(false);
     }
